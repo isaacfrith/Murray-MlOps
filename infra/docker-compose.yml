@@ -1,0 +1,72 @@
+# Run from the repo root:
+#   docker compose --env-file .env -f infra/docker-compose.yml up -d
+# (--env-file is needed because Compose otherwise looks for .env next to this file.)
+name: murray
+
+services:
+  postgres:
+    image: postgres:17.11-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      ICEBERG_DB_PASSWORD: ${ICEBERG_DB_PASSWORD:?set in .env}
+      MLFLOW_DB_PASSWORD: ${MLFLOW_DB_PASSWORD:?set in .env}
+      AIRFLOW_DB_PASSWORD: ${AIRFLOW_DB_PASSWORD:?set in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    mem_limit: 512m
+    restart: unless-stopped
+
+  # All-in-one: master + volume + filer + S3 gateway in one process.
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.48
+    command: >
+      server -s3 -ip=seaweedfs -ip.bind=0.0.0.0
+      -master.telemetry=false
+    environment:
+      # SeaweedFS creates an admin S3 identity from these (no s3.json needed).
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:?set in .env}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?set in .env}
+    volumes:
+      - seaweedfs-data:/data
+    ports:
+      - "127.0.0.1:8333:8333"   # S3 API
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8333/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+    mem_limit: 512m
+    restart: unless-stopped
+
+  # One-off job: exits 0 whether or not the bucket already exists.
+  create-bucket:
+    image: amazon/aws-cli:2.38.5
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:?set in .env}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?set in .env}
+      AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
+      AWS_ENDPOINT_URL: http://seaweedfs:8333
+    entrypoint: ["sh", "-c"]
+    command:
+      - aws s3api head-bucket --bucket lakehouse 2>/dev/null
+        && echo "bucket lakehouse already exists"
+        || aws s3api create-bucket --bucket lakehouse
+    mem_limit: 256m
+    restart: "no"
+
+volumes:
+  pgdata:
+  seaweedfs-data:

@@ -1,0 +1,30 @@
+[project]
+name = "murray"
+version = "0.1.0"
+description = "Murray River at Barmah height forecast (FTI pipelines)"
+readme = "README.md"
+authors = [
+    { name = "Isaac", email = "isaacfrith98@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.43.118",
+    "pandas>=3.1.0",
+    "pyiceberg[pyarrow,pyiceberg-core,sql-postgres]>=0.12.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.10.2,<0.11.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.4.0",
+    "psycopg[binary]>=3.3.6",
+    "pytest>=9.1.1",
+    "python-dotenv>=1.2.4",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: needs the local docker compose stack (Postgres + SeaweedFS)"]
