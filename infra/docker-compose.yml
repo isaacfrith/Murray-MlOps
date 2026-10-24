@@ -67,6 +67,43 @@ services:
     mem_limit: 256m
     restart: "no"
 
+  # Tracking server + model registry. Metadata → Postgres (mlflow DB), artifacts → S3.
+  # --serve-artifacts: clients upload/download artifacts *through* this server, so
+  # training code needs only MLFLOW_TRACKING_URI, never S3 credentials.
+  mlflow:
+    build: ./mlflow
+    image: murray/mlflow:3.17.2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      create-bucket:
+        condition: service_completed_successfully
+    environment:
+      MLFLOW_BACKEND_STORE_URI: postgresql+psycopg2://mlflow:${MLFLOW_DB_PASSWORD:?set in .env}@postgres:5432/mlflow
+      MLFLOW_S3_ENDPOINT_URL: http://seaweedfs:8333
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:?set in .env}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?set in .env}
+      AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
+      # MLflow 3 starts ~7 background job workers (GenAI scoring, trace archival),
+      # ~200 MB each. Not needed for classic tracking + registry.
+      MLFLOW_SERVER_ENABLE_JOB_EXECUTION: "false"
+    command: >
+      mlflow server
+      --host 0.0.0.0 --port 5000 --workers 2
+      --serve-artifacts --artifacts-destination s3://lakehouse/mlflow
+      --allowed-hosts localhost,localhost:*,127.0.0.1:*,mlflow,mlflow:*
+    ports:
+      - "127.0.0.1:5050:5000"   # 5000 on macOS is taken by AirPlay Receiver
+    healthcheck:
+      # No curl in this image; use Python.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    mem_limit: 768m
+    restart: unless-stopped
+
 volumes:
   pgdata:
   seaweedfs-data:

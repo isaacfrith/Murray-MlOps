@@ -11,12 +11,14 @@ cp .env.example .env      # then replace every change-me (openssl rand -hex 16)
 docker compose --env-file .env -f infra/docker-compose.yml up -d
 uv sync
 uv run python scripts/check_step1.py
+uv run pytest -m integration      # Iceberg + MLflow round trips
 ```
 
 | Service   | Address                 | Purpose                                          |
 |-----------|-------------------------|--------------------------------------------------|
 | Postgres  | `localhost:5432`        | DBs: `iceberg_catalog`, `mlflow`, `airflow` (one user each) |
 | SeaweedFS | `http://localhost:8333` | S3 API (path-style), bucket `lakehouse`          |
+| MLflow    | `http://localhost:5050` | Tracking + model registry; artifacts in `s3://lakehouse/mlflow` (proxied) |
 
 Reset everything (re-runs the Postgres init script): `docker compose --env-file .env -f infra/docker-compose.yml down -v`
 
