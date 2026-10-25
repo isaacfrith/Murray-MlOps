@@ -12,6 +12,7 @@ dependencies = [
     "mlflow-skinny==3.17.2",
     "pandas>=3.1.0",
     "pyiceberg[pyarrow,pyiceberg-core,sql-postgres]>=0.12.0",
+    "redis>=8.1.0",
 ]
 
 [build-system]
@@ -24,7 +25,6 @@ dev = [
     "psycopg[binary]>=3.3.6",
     "pytest>=9.1.1",
     "python-dotenv>=1.2.4",
-    "redis>=8.1.0",
 ]
 
 [tool.pytest.ini_options]

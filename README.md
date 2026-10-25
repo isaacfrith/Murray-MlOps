@@ -19,8 +19,13 @@ make test                 # integration tests: Iceberg, MLflow, Valkey
 | SeaweedFS | `http://localhost:8333` | S3 API (path-style), bucket `lakehouse`          |
 | MLflow    | `http://localhost:5050` | Tracking + model registry; artifacts in `s3://lakehouse/mlflow` (proxied) |
 | Valkey    | `localhost:6379`        | Feast online store (password auth, `noeviction`, RDB snapshots) |
+| Airflow   | `http://localhost:8080` | Airflow 3, LocalExecutor. User `admin`, password `AIRFLOW_ADMIN_PASSWORD` in `.env` |
 
-Other shortcuts: `make ps`, `make logs s=mlflow`, `make down`.
+DAGs live in `pipelines/` (mounted live). Tasks run in `/opt/murray/.venv`, built from `uv.lock`,
+via `@task.external_python`; Airflow keeps its own Python. After changing `src/` or `uv.lock`,
+run `make up` to rebuild the image. Check DAGs with `make dag-errors` and `make dag-test d=smoke_stack`.
+
+Other shortcuts: `make ps`, `make logs s=airflow-scheduler`, `make down`.
 Reset everything (re-runs the Postgres init script): `docker compose --env-file .env -f infra/docker-compose.yml down -v`
 
 Notebooks: `02_iceberg_sandbox` (Iceberg internals), `03_mlflow_tour` (MLflow storage, aliases, hostnames).

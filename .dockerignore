@@ -1,0 +1,16 @@
+# Build context is the repo root (the Airflow image needs pyproject.toml, uv.lock, src/).
+# Keep secrets, local envs and bulky folders out of every image.
+.env
+.env.*
+!.env.example
+.git
+.venv
+**/__pycache__
+**/.ipynb_checkpoints
+notebooks
+tests
+infra
+features
+pipelines
+*.md
+!README.md
