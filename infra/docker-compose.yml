@@ -104,6 +104,37 @@ services:
     mem_limit: 768m
     restart: unless-stopped
 
+  # Feast online store: latest feature values per entity, read at inference time.
+  # It is a *derived* cache (rebuilt by `feast materialize` from the Iceberg offline store),
+  # so persistence is a convenience for restarts, not the source of truth.
+  valkey:
+    image: valkey/valkey:9.1.2-alpine
+    environment:
+      VALKEY_PASSWORD: ${VALKEY_PASSWORD:?set in .env}
+      REDISCLI_AUTH: ${VALKEY_PASSWORD:?set in .env}   # lets valkey-cli in the healthcheck auth without -a
+    command:
+      - sh
+      - -c
+      - >-
+        exec valkey-server
+        --requirepass "$$VALKEY_PASSWORD"
+        --maxmemory 256mb
+        --maxmemory-policy noeviction
+        --save 300 1
+        --appendonly no
+    volumes:
+      - valkey-data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    mem_limit: 384m
+    restart: unless-stopped
+
 volumes:
   pgdata:
   seaweedfs-data:
+  valkey-data:
