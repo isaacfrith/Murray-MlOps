@@ -89,7 +89,7 @@ services:
       MLFLOW_SERVER_ENABLE_JOB_EXECUTION: "false"
     command: >
       mlflow server
-      --host 0.0.0.0 --port 5000 --workers 2
+      --host 0.0.0.0 --port 5000 --workers 1
       --serve-artifacts --artifacts-destination s3://lakehouse/mlflow
       --allowed-hosts localhost,localhost:*,127.0.0.1:*,mlflow,mlflow:*
     ports:
