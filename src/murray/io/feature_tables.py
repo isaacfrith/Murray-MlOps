@@ -50,3 +50,14 @@ def write_features(table: Table, features: pd.DataFrame) -> int:
 
 
 write_barmah_daily = write_features  # backwards-compatible name
+
+
+def daily_levels(catalog: Catalog) -> pd.DataFrame:
+    """Barmah + Yarrawonga daily mean levels, one row per calendar day (gaps = NaN).
+
+    The raw series behind the engineered features, for models that read history directly.
+    """
+    df = catalog.load_table(BARMAH_DAILY).scan(
+        selected_fields=("obs_date", "barmah_level_m", "yarra_level_m")).to_pandas()
+    df = df.set_index(pd.DatetimeIndex(pd.to_datetime(df["obs_date"]), name="date")).sort_index()
+    return df[["barmah_level_m", "yarra_level_m"]].asfreq("D")

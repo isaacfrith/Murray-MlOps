@@ -36,3 +36,16 @@ def test_waiting_until_enough_matured():
     m = match_actuals(pd.DataFrame([preds(D(2026, 10, 1), 1, 2.5)]), actual)
     s = summarize(m, backtest_mae_m={1: 0.011})
     assert s["horizons"][0]["status"] == "waiting" and not s["degraded"]
+
+
+def test_old_rows_default_to_lightgbm_and_models_dedupe_separately():
+    from murray.transforms.monitoring import with_model_name
+
+    p = pd.DataFrame({"issued_at": pd.to_datetime(["2026-10-26 01:00", "2026-10-26 02:00",
+                                                   "2026-10-26 02:00"], utc=True),
+                      "model_name": [None, None, "barmah-level-timestral"],
+                      "obs_date": [dt.date(2026, 10, 25)] * 3, "horizon": [1, 1, 1],
+                      "level_m": [2.1, 2.2, 2.3]})
+    out = latest_forecasts(with_model_name(p, "barmah-level-forecast"))
+    assert sorted(zip(out["model_name"], out["level_m"])) == [
+        ("barmah-level-forecast", 2.2), ("barmah-level-timestral", 2.3)]

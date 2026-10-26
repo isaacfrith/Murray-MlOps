@@ -54,12 +54,26 @@
     <div class="scroll" id="scores"></div>
   </section>
 
+  <section id="compare" hidden>
+    <h2>Model comparison: LightGBM vs Timestral</h2>
+    <p class="note">Same test period, same targets, one forecast per day using only data up to that day.
+      Timestral is Mistral's general-purpose time-series model, used <strong>zero-shot</strong>: it was never
+      trained on this river. It runs daily as a second opinion under the main forecast and never replaces it.</p>
+    <p id="compare-summary"></p>
+    <h3 class="note">Average error (cm) by days ahead, all test days</h3>
+    <div class="scroll" id="compare-table"></div>
+    <h3 class="note">On days when dam releases changed</h3>
+    <div class="scroll" id="compare-release"></div>
+  </section>
+
   <section>
     <h2>Live accuracy (since go-live)</h2>
     <p class="note">Every published forecast is checked against what Barmah actually did once that day's
       reading arrives. If live error runs above 1.5× the backtest error, retraining is triggered
-      automatically (the new model still has to beat the champion to replace it).</p>
+      automatically (the new model still has to beat the champion to replace it). Timestral is
+      checked the same way, for information only: it isn't trained here, so there is nothing to retrain.</p>
     <div id="live"></div>
+    <div id="live-second"></div>
   </section>
 
   <section>
@@ -83,7 +97,7 @@
   </section>
 
   <footer>
-    <p>Built with Iceberg, Feast, MLflow, LightGBM and Airflow. Data: State of Victoria (DEECA), WaterNSW
+    <p>Built with Iceberg, Feast, MLflow, LightGBM, Timestral and Airflow. Data: State of Victoria (DEECA), WaterNSW
       (CC BY 4.0) via <a href="https://riverdata.mdba.gov.au/">MDBA River Murray Data</a> sources;
       <a href="https://open-meteo.com/">Weather data by Open-Meteo.com</a> (CC BY 4.0).</p>
     <p id="meta"></p>
@@ -273,6 +287,59 @@ function toggle(btnId, boxId, onLabel, offLabel) {
   };
 }
 
+function renderCompare(models) {
+  const so = models.second_opinion;
+  if (!so) return;
+  document.getElementById("compare").hidden = false;
+  const lgb = models.champion_card, champ = models.history.find(v => v.champion);
+  const find = (card, regime, f) => card.scores_cm.find(s => s.regime === regime && s.forecaster === f);
+  const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
+  const pct = c => Math.round(mean(c) * 100) + "%";
+  const NAMES = { with_yarrawonga: "Barmah + Yarrawonga", barmah_only: "Barmah only" };
+  const lgbAll = find(lgb, "all", "model").mae, base = find(lgb, "all", "persistence").mae;
+  const rows = [
+    { cls: "champion", cells: [`LightGBM v${champ.version} ★ main forecast`, mean(lgbAll).toFixed(2),
+      ...lgbAll.map(v => v.toFixed(1)), "—"] },
+    ...so.variants.map(v => ({ cls: v.live ? "second" : "", cells: [
+      `Timestral 28M, ${NAMES[v.variant] || v.variant}${v.live ? " (second opinion)" : ""}`,
+      v.mae_mean_cm.toFixed(2), ...v.mae_cm.map(x => x.toFixed(1)), pct(v.coverage80)] })),
+    { cells: ['"No change" (persistence)', mean(base).toFixed(2), ...base.map(v => v.toFixed(1)), "—"] },
+  ];
+  document.getElementById("compare-table").append(table(rows,
+    ["Forecaster", "Mean", "1", "2", "3", "4", "5", "6", "7", "In 80% range"]));
+
+  const tsAll = find(so.card, "all", "model").mae;
+  const lgbWins = tsAll.map((t, i) => lgbAll[i] <= t);
+  const firstTs = lgbWins.indexOf(false);
+  document.getElementById("compare-summary").textContent = firstTs < 0
+    ? "LightGBM is more accurate at every horizon."
+    : lgbWins.slice(firstTs).every(w => !w) && firstTs > 0
+      ? `LightGBM is more accurate up to ${firstTs} day${firstTs > 1 ? "s" : ""} ahead; Timestral is more ` +
+        `accurate from ${firstTs + 1} days ahead, with no training at all. Its 80% range held the actual level ` +
+        `${pct(so.variants.find(v => v.live).coverage80)} of the time (ideal: 80%). Without Yarrawonga's ` +
+        `upstream readings it does much worse, so knowing what's coming down the river matters to both models.`
+      : "Neither model wins everywhere: see the table.";
+
+  const rel = [["LightGBM", find(lgb, "release_change", "model")], ["Timestral", find(so.card, "release_change", "model")],
+               ['"No change"', find(lgb, "release_change", "persistence")]];
+  document.getElementById("compare-release").append(table(rel.map(([n, s]) => ({
+    cells: [n, s.n, ...s.mae.map(v => v.toFixed(1))] })), ["Forecaster", "n", "1", "2", "3", "4", "5", "6", "7"]));
+}
+
+function renderLiveSecond(mon) {
+  const so = mon && mon.second_opinion, box = document.getElementById("live-second");
+  if (!so) return;
+  box.append(el("h3", "note", `Timestral v${so.model_version} (second opinion)`));
+  if (!so.matured) {
+    box.append(el("p", "note", so.first_target_date
+      ? `First check on ${fmtDay(so.first_target_date)}'s reading.` : "No second-opinion forecasts issued yet."));
+    return;
+  }
+  const cm = v => v == null ? "—" : (v * 100).toFixed(1);
+  box.append(table(so.horizons.map(h => ({ cells: [h.horizon, h.n, cm(h.live_mae_m), cm(h.backtest_mae_m),
+    cm(h.persistence_mae_m)] })), ["Days ahead", "Checked", "Live error (cm)", "Backtest (cm)", "No change (cm)"]));
+}
+
 function renderLive(mon) {
   const box = document.getElementById("live");
   if (!mon) { box.append(el("p", "note", "Monitoring data not published yet.")); return; }
@@ -298,6 +365,8 @@ Promise.all([
   fetch("monitoring.json", { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null),
 ]).then(([forecast, models, monitoring]) => {
   renderLive(monitoring);
+  renderLiveSecond(monitoring);
+  renderCompare(models);
   const card = models.champion_card;
   const champ = models.history.find(v => v.champion);
   document.getElementById("intro").textContent =

@@ -1,20 +1,20 @@
 :root {
   --bg: #f6f7f4; --card: #ffffff; --text: #1d2420; --muted: #5d6b63; --line: #dde3dc;
-  --river: #1f6f8b; --forecast: #d9822b;
+  --river: #1f6f8b; --forecast: #d9822b; --second: #7b5ea7;
   --good: #2e7d4f; --good-bg: #e3f2e8; --marginal: #a26a00; --marginal-bg: #fbf0d9;
   --nogo: #b23a3a; --nogo-bg: #f8e1e1; --none: #5d6b63; --none-bg: #eceeea;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #121614; --card: #1b211e; --text: #e6ece8; --muted: #9aa8a0; --line: #2c3530;
-    --river: #5fb3d1; --forecast: #f0a356;
+    --river: #5fb3d1; --forecast: #f0a356; --second: #b49be0;
     --good: #6fcf97; --good-bg: #1d3226; --marginal: #f2c14e; --marginal-bg: #3a3020;
     --nogo: #f08080; --nogo-bg: #3b2222; --none: #9aa8a0; --none-bg: #262c29;
   }
 }
 :root[data-theme="dark"] {
   --bg: #121614; --card: #1b211e; --text: #e6ece8; --muted: #9aa8a0; --line: #2c3530;
-  --river: #5fb3d1; --forecast: #f0a356;
+  --river: #5fb3d1; --forecast: #f0a356; --second: #b49be0;
   --good: #6fcf97; --good-bg: #1d3226; --marginal: #f2c14e; --marginal-bg: #3a3020;
   --nogo: #f08080; --nogo-bg: #3b2222; --none: #9aa8a0; --none-bg: #262c29;
 }
@@ -69,3 +69,13 @@ tr.champion td { background: var(--good-bg); }
           cursor: pointer; padding: 0; margin-top: 8px; }
 ul.limits { padding-left: 20px; margin: 0; }
 ul.limits li { margin-bottom: 6px; }
+
+/* Second opinion (Timestral): same cards, quieter, with a purple accent. */
+.second-head { margin: 22px 0 4px; font-size: 1.05rem; }
+.second-head span { color: var(--second); }
+.days.second .day { border-left: 3px solid var(--second); }
+.day .range { color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.legend b { font-weight: normal; }
+.legend [hidden] { display: none; }
+.day .pgood { font-size: .85rem; margin-top: 4px; }
+tr.second td:first-child { box-shadow: inset 3px 0 0 var(--second); }

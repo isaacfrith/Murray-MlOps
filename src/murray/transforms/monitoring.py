@@ -14,10 +14,20 @@ MIN_MATURED = 5         # per horizon, before any verdict
 DEGRADED_RATIO = 1.5    # live MAE > 1.5 × backtest MAE → degraded
 
 
+def with_model_name(preds: pd.DataFrame, default: str) -> pd.DataFrame:
+    """Rows written before the model_name column existed (schema evolution) are the default model."""
+    p = preds.copy()
+    if "model_name" not in p:
+        p["model_name"] = None
+    p["model_name"] = p["model_name"].fillna(default)
+    return p
+
+
 def latest_forecasts(preds: pd.DataFrame) -> pd.DataFrame:
-    """Inference can run several times from the same observed day; keep the last issue."""
+    """Inference can run several times from the same observed day; keep the last issue (per model)."""
+    keys = ["model_name", "obs_date", "horizon"] if "model_name" in preds else ["obs_date", "horizon"]
     return (preds.sort_values("issued_at")
-            .drop_duplicates(subset=["obs_date", "horizon"], keep="last")
+            .drop_duplicates(subset=keys, keep="last")
             .reset_index(drop=True))
 
 

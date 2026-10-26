@@ -1,7 +1,7 @@
 """Export what the static model page needs from the (private) MLflow registry.
 
-site/models.json = registry history (every version, its scores and promotion reason) + the
-current champion's model card. Runs at the end of every inference so the page always
+site/models.json = registry history (every version, its scores and promotion reason), the
+current champion's model card, and the Timestral second opinion (both variants' scores + card). Runs at the end of every inference so the page always
 describes the model that made today's forecast.
 """
 
@@ -65,12 +65,39 @@ def registry_history(client: mlflow.MlflowClient) -> list[dict]:
     return sorted(rows, key=lambda r: int(r["version"]), reverse=True)
 
 
+def second_opinion(client: mlflow.MlflowClient) -> dict | None:
+    """Timestral: both zero-shot variants' test scores, and the live variant's card."""
+    from murray.models.timestral_model import ALIAS, EXPERIMENT
+    from murray.models.timestral_model import MODEL_NAME as TS_NAME
+
+    exp = client.get_experiment_by_name(EXPERIMENT)
+    try:
+        live = client.get_model_version_by_alias(TS_NAME, ALIAS)
+    except mlflow.exceptions.MlflowException:
+        return None
+    variants = []
+    for run in client.search_runs([exp.experiment_id], order_by=["start_time DESC"]):
+        m, p = run.data.metrics, run.data.params
+        if "test_mae_mean" not in m or any(v["variant"] == p["variant"] for v in variants):
+            continue  # latest run per variant only
+        variants.append({"variant": p["variant"], "run_name": run.info.run_name,
+                         "live": run.info.run_id == live.run_id,
+                         "mae_mean_cm": round(m["test_mae_mean"] * 100, 2),
+                         "mae_cm": [round(m[f"test_mae_h{h}"] * 100, 2) for h in HORIZONS],
+                         "coverage80": [round(m[f"coverage80_h{h}"], 3) for h in HORIZONS]})
+    with tempfile.TemporaryDirectory() as tmp:
+        card = json.loads(Path(client.download_artifacts(live.run_id, CARD_PATH, tmp)).read_text())
+    return {"model_name": TS_NAME, "version": live.version, "variant": live.tags.get("variant", ""),
+            "variants": variants, "card": card}
+
+
 def export_models_json(client: mlflow.MlflowClient, site_dir: str | Path | None = None) -> Path:
     from murray.pipelines.inference_pipeline import DEFAULT_SITE_DIR
 
     site = Path(site_dir or os.environ.get("SITE_DIR") or DEFAULT_SITE_DIR)
     out = {"exported_at": dt.datetime.now(dt.timezone.utc).isoformat(), "model_name": MODEL_NAME,
-           "history": registry_history(client), "champion_card": champion_card(client)}
+           "history": registry_history(client), "champion_card": champion_card(client),
+           "second_opinion": second_opinion(client)}
     path = site / "models.json"
     path.write_text(json.dumps(out, separators=(",", ":")) + "\n")
     log.info("wrote %s (%.0f KB)", path, path.stat().st_size / 1024)

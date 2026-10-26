@@ -16,11 +16,18 @@
   <div class="status" id="status">Loading forecast…</div>
   <div class="days" id="days"></div>
 
+  <section id="second" hidden>
+    <h2 class="second-head">Second opinion: <span>Timestral 28M</span> (zero-shot)</h2>
+    <p class="note" id="second-note"></p>
+    <div class="days second" id="second-days"></div>
+  </section>
+
   <section>
     <h2>Level: last 30 days and next 7</h2>
     <div class="chart"><svg id="chart" viewBox="0 0 900 300" role="img" aria-label="River level chart"></svg>
       <div class="legend"><span style="background:var(--river)"></span>observed
         <span style="background:var(--forecast)"></span>forecast
+        <span class="second-legend" style="background:var(--second)" hidden></span><b class="second-legend" hidden>Timestral median + 80% range</b>
         <span style="background:var(--good);opacity:.35;height:10px"></span>good range</div>
     </div>
   </section>
@@ -31,7 +38,9 @@
     <p>River data: State of Victoria (DEECA) Water Measurement Information System and WaterNSW Real Time Water,
        CC BY 4.0, the sources behind <a href="https://riverdata.mdba.gov.au/">MDBA River Murray Data</a>.
        <a href="https://open-meteo.com/">Weather data by Open-Meteo.com</a>, CC BY 4.0.
-       Forecast: LightGBM model, retrained weekly, promoted only when it beats the current model.</p>
+       Forecast: LightGBM model, retrained weekly, promoted only when it beats the current model.
+       Second opinion: <a href="https://huggingface.co/mistralai/Timestral-28M">Timestral 28M</a> by Mistral AI
+       (modified MIT licence), used as-is with no training on this river.</p>
     <p id="meta"></p>
   </footer>
 </main>
@@ -66,13 +75,42 @@ function renderDays(days) {
   }
 }
 
-function renderChart(history, days) {
+function renderSecond(so) {
+  const sec = document.getElementById("second"), note = document.getElementById("second-note");
+  sec.hidden = false;
+  if (!so || so.status !== "ok") {
+    note.textContent = "Not available for this forecast" + (so && so.reason ? ": " + so.reason : ".");
+    return;
+  }
+  note.textContent = "A general-purpose time-series model from Mistral, never trained on this river. " +
+    "It reads Barmah's and Yarrawonga's level history and gives a range: 8 in 10 outcomes should fall inside it. " +
+    (so.calibrated
+      ? `In testing it did ${Math.round(so.coverage80 * 100)}% of the time, so the chance of a good level is shown.`
+      : `In testing that held only ${Math.round(so.coverage80 * 100)}% of the time, so no chances are shown.`);
+  const box = document.getElementById("second-days");
+  for (const d of so.days) {
+    const card = el("div", "day " + (RATING_CLASS[d.rating] || "none"));
+    card.append(el("div", "date", fmtDay(d.date)), el("div", "rating", d.rating),
+      el("div", "num", d.level_m.toFixed(2) + " m"),
+      el("div", "range", "80% range"), el("div", "range", `${d.q10_m.toFixed(2)}–${d.q90_m.toFixed(2)} m`));
+    // The model's quantiles stop at 1% and 99%: it can't resolve odds beyond those.
+    const p = d.p_good_level;
+    if (p != null)
+      card.append(el("div", "pgood", (p >= 0.99 ? ">99%" : p <= 0.01 ? "<1%" : Math.round(p * 100) + "%") +
+        " chance of a good level"));
+    card.append(el("div", "why", d.rating === "good" ? "" : d.reasons.join(" · ")));
+    box.append(card);
+  }
+}
+
+function renderChart(history, days, second) {
   const svg = document.getElementById("chart");
   const W = 900, H = 300, L = 48, R = 12, T = 12, B = 32;
   const pts = [...history.map(p => ({ d: p.date, v: p.level_m, f: false })),
                ...days.map(p => ({ d: p.date, v: p.level_m, f: true }))];
   if (!pts.length) return;
-  const vals = pts.map(p => p.v).concat(GOOD);
+  const so = second && second.status === "ok" ? second.days : [];
+  const vals = pts.map(p => p.v).concat(GOOD, so.flatMap(d => [d.q10_m, d.q90_m]));
   const lo = Math.floor((Math.min(...vals) - 0.1) * 10) / 10, hi = Math.ceil((Math.max(...vals) + 0.1) * 10) / 10;
   const x = i => L + (W - L - R) * i / (pts.length - 1);
   const y = v => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
@@ -95,6 +133,15 @@ function renderChart(history, days) {
   add("polyline", { points: path(obs), fill: "none", stroke: css("--river"), "stroke-width": 2.5 });
   if (fc.length && obs.length) add("polyline", { points: path([obs[obs.length - 1], ...fc]), fill: "none",
     stroke: css("--forecast"), "stroke-width": 2.5, "stroke-dasharray": "6 4" });
+  if (so.length && obs.length) {  // second opinion: 80% band + median, aligned to the same days
+    const last = obs[obs.length - 1], xi = d => history.length + so.indexOf(d);
+    const band = [`${x(last[1])},${y(last[0].v)}`, ...so.map(d => `${x(xi(d))},${y(d.q90_m)}`),
+                  ...[...so].reverse().map(d => `${x(xi(d))},${y(d.q10_m)}`)];
+    add("polygon", { points: band.join(" "), fill: css("--second"), opacity: 0.15 });
+    add("polyline", { points: [`${x(last[1])},${y(last[0].v)}`, ...so.map(d => `${x(xi(d))},${y(d.level_m)}`)].join(" "),
+      fill: "none", stroke: css("--second"), "stroke-width": 2, "stroke-dasharray": "2 3" });
+    document.querySelectorAll(".second-legend").forEach(e => { e.hidden = false; });
+  }
   for (const i of [0, obs.length - 1, pts.length - 1]) {
     if (i < 0) continue;
     add("text", { x: x(i), y: H - 10, "text-anchor": i === 0 ? "start" : i === pts.length - 1 ? "end" : "middle",
@@ -115,7 +162,8 @@ fetch("forecast.json", { cache: "no-store" })
       status.append(el("strong", null, `${goodDays} of ${f.days.length} days look good`),
         el("div", null, `Last reading ${f.observed_level_m.toFixed(2)} m on ${fmtDay(f.observed_date)}`));
       renderDays(f.days);
-      renderChart(f.history, f.days);
+      renderSecond(f.second_opinion);
+      renderChart(f.history, f.days, f.second_opinion);
     }
     document.getElementById("meta").textContent =
       `Issued ${new Date(f.issued_at).toLocaleString("en-AU")} · model v${f.model_version} · rule v${f.rule_version}`;

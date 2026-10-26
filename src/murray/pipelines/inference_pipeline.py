@@ -1,5 +1,8 @@
 """Inference pipeline: Feast ONLINE features + @champion → 7-day forecast → wakeboarding rating.
 
+The Timestral second opinion is added afterwards by second_opinion_pipeline, in its own process
+(LightGBM and PyTorch each bundle an OpenMP runtime, and the two can't share one process).
+
 Outputs: an append-only Iceberg row per forecast day (for monitoring) and site/forecast.json
 (for the static dashboard). FTI rule: reads only the feature store and the model registry.
 """
@@ -16,7 +19,7 @@ import pandas as pd
 
 from murray.io.catalog import get_catalog
 from murray.io.feature_store import get_store
-from murray.io.prediction_tables import append_forecast, barmah_forecast_table
+from murray.io.prediction_tables import append_forecast, barmah_forecast_table, forecast_rows
 from murray.io.registry import configure
 from murray.io.weather import fetch_forecast
 from murray.models.explain import local_explanation
@@ -78,12 +81,13 @@ def run(now: dt.datetime | None = None, site_dir: str | Path | None = None) -> d
     else:
         pred = model.predict(features).iloc[0]
         current = float(features.loc[0, "barmah_level_m"])
-        wind = fetch_forecast().set_index("obs_date")["wind_speed_10m_max"]
+        wind = {d: float(w) for d, w in
+                fetch_forecast().set_index("obs_date")["wind_speed_10m_max"].items()}
         days, prev = [], current
         for h in HORIZONS:
             target = obs_date + dt.timedelta(days=h)
             level = float(pred[f"h{h}"])
-            w = float(wind.get(target)) if target in wind.index else None
+            w = wind.get(target)
             r = rate_day(level, level - prev, w, rule)
             days.append({"date": target.isoformat(), "horizon": h, "level_m": round(level, 3),
                          "wind_kmh": w, "rating": r.rating, "reasons": r.reasons})
@@ -95,13 +99,11 @@ def run(now: dt.datetime | None = None, site_dir: str | Path | None = None) -> d
                    observed_level_m=round(current, 3), days=days,
                    history=_recent_history(obs_date))
 
-        rows = pd.DataFrame([{"issued_at": pd.Timestamp(now), "model_version": str(version),
-                              "obs_date": obs_date, "target_date": dt.date.fromisoformat(d["date"]),
-                              "horizon": d["horizon"], "level_m": d["level_m"],
-                              "wind_kmh": d["wind_kmh"], "rating": d["rating"]} for d in days])
-        append_forecast(barmah_forecast_table(get_catalog()), rows)
+        table = barmah_forecast_table(get_catalog())
+        append_forecast(table, forecast_rows(now, MODEL_NAME, version, obs_date, days))
         log.info("forecast from %s with v%s: %s", obs_date, version,
                  ", ".join(f"{d['date']} {d['level_m']:.2f}m {d['rating']}" for d in days))
+
 
     site = Path(site_dir or os.environ.get("SITE_DIR") or DEFAULT_SITE_DIR)
     site.mkdir(parents=True, exist_ok=True)

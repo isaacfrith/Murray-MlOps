@@ -1,5 +1,7 @@
 .env
 .venv/
+# torch + Timestral, kept apart from LightGBM (see Makefile)
+.venv-timestral/
 __pycache__/
 .DS_Store
 

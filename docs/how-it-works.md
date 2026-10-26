@@ -22,6 +22,9 @@ flowchart LR
     valkey -- "get_online_features<br/>(Step 9: inference)" --> infer["Inference pipeline"]
     registry -- "load @champion" --> infer
     infer --> site
+    feat -- "daily level history<br/>(offline table)" --> second["Second opinion<br/>Timestral, own venv"]
+    registry -- "load barmah-level-timestral@live" --> second
+    second --> site
 ```
 
 Underneath it all, two storage services:
@@ -83,6 +86,7 @@ Feature, training and inference pipelines (FTI) are connected **only** through t
 | ~10:01 | Raw asset updated, so `features_barmah` rebuilds the features, runs `feast apply`, and materializes the newest row into Valkey |
 | Step 8 | Training (scheduled, e.g. weekly): historical features + labels, then LightGBM, MLflow, and promotion only if better |
 | Step 9 | Inference: online features + `@champion` → 7-day forecast → wakeboarding rating → `forecast.json` |
+| then | Second opinion: Timestral `@live` reads the level history up to the same day D, adds its median + 80% range to `forecast.json` (separate venv: Feast imports PyTorch if it's installed, and PyTorch + LightGBM in one process crashes on macOS) |
 
 ## Numbers to remember
 
@@ -90,4 +94,5 @@ Feature, training and inference pipelines (FTI) are connected **only** through t
 - **Persistence baseline** ("tomorrow = today"), average error: **3.3 cm** at 1 day ahead, rising to **18.9 cm** at 7 days. The model must beat this.
 - **Weather didn't help** (5.39 vs 5.30 cm): Barmah is regulated, and upstream rain is already in the Yarrawonga gauge.
 - **Champion v1 (river-only):** 1.1 cm (h1) → 9.9 cm (h7) average error, 51–68% better than persistence.
+- **Timestral 28M, zero-shot (Barmah + Yarrawonga):** 1.4 cm (h1) → 8.3 cm (h7), mean 4.76 vs LightGBM's 5.30. LightGBM wins 1–2 days ahead, Timestral from 3 days on. Its 80% range held the actual level 82% of the time. Without Yarrawonga it falls to 7.50 cm: upstream data matters to both models.
 - **History:** Barmah from 1974, Yarrawonga from 1970; 17,325 usable feature rows.

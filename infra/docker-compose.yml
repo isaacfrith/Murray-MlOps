@@ -97,7 +97,8 @@ services:
       timeout: 3s
       retries: 30
       start_period: 10s
-    mem_limit: 512m
+    # 512m was OOM-killed (exit 137) by a 111 MB multipart upload (Timestral weights → MLflow).
+    mem_limit: 1g
     restart: unless-stopped
 
   # One-off job: exits 0 whether or not the bucket already exists.

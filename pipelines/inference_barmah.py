@@ -2,9 +2,11 @@
 
 Runs whenever fresh features are online (BARMAH_FEATURES asset, set by features_barmah after
 materialising to Valkey). Writes predictions.barmah_forecast (Iceberg, for monitoring) and
-site/*.json, then publishes the JSON to the `site-data` branch on GitHub, which redeploys
+site/*.json, adds the Timestral second opinion (own venv: PyTorch can't share a process with
+LightGBM), then publishes the JSON to the `site-data` branch on GitHub, which redeploys
 GitHub Pages. Publishing only happens after a successful forecast, and is skipped (not failed)
-until GITHUB_PUBLISH_TOKEN is set.
+until GITHUB_PUBLISH_TOKEN is set. A broken second opinion never blocks publishing: it is
+reported on the page instead.
 """
 
 from datetime import datetime, timedelta
@@ -12,6 +14,7 @@ from datetime import datetime, timedelta
 from airflow.sdk import Asset, chain, dag, task
 
 MURRAY_PYTHON = "/opt/murray/.venv/bin/python"
+TIMESTRAL_PYTHON = "/opt/timestral/.venv/bin/python"
 BARMAH_FEATURES = Asset("iceberg://lakehouse/features/barmah_daily")
 
 
@@ -36,6 +39,15 @@ def inference_barmah():
         logging.basicConfig(level=logging.INFO, force=True)
         return run()
 
+    @task.external_python(python=TIMESTRAL_PYTHON)
+    def second_opinion() -> dict:
+        import logging
+
+        from murray.pipelines.second_opinion_pipeline import run
+
+        logging.basicConfig(level=logging.INFO, force=True)
+        return run()
+
     @task.external_python(python=MURRAY_PYTHON)
     def publish() -> str:
         import logging
@@ -46,7 +58,7 @@ def inference_barmah():
         logging.basicConfig(level=logging.INFO, force=True)
         return publish(os.environ["SITE_DIR"])
 
-    chain(forecast(), publish())
+    chain(forecast(), second_opinion(), publish())
 
 
 inference_barmah()
