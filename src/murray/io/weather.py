@@ -76,3 +76,24 @@ def fetch_daily(start: dt.date, end: dt.date, pause_s: float = 1.0) -> pd.DataFr
     out = pd.concat(frames, ignore_index=True)
     out["obs_date"] = pd.to_datetime(out["obs_date"]).dt.date
     return out
+
+
+FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
+
+
+def fetch_forecast(location: str = "barmah", past_days: int = 2, forecast_days: int = 9) -> pd.DataFrame:
+    """Weather FORECAST for the days ahead (used by the wakeboarding rule, never by the model).
+
+    Columns: obs_date, wind_speed_10m_max, temperature_2m_max, precipitation_sum.
+    past_days covers the case where the newest river features are a day or two old.
+    """
+    lat, lon = LOCATIONS[location]
+    resp = requests.get(FORECAST_URL, timeout=30, headers={"User-Agent": USER_AGENT}, params={
+        "latitude": lat, "longitude": lon, "past_days": past_days, "forecast_days": forecast_days,
+        "daily": "wind_speed_10m_max,temperature_2m_max,precipitation_sum",
+        "timezone": "Australia/Melbourne",
+    })
+    resp.raise_for_status()
+    df = pd.DataFrame(resp.json()["daily"]).rename(columns={"time": "obs_date"})
+    df["obs_date"] = pd.to_datetime(df["obs_date"]).dt.date
+    return df

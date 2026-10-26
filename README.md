@@ -4,6 +4,10 @@ Forecasts the Murray River's height at Barmah 1–7 days ahead and turns it into
 "good for wakeboarding?" rating. Built with feature / training / inference (FTI)
 pipelines that share only a feature store (Feast) and a model registry (MLflow).
 
+**Dashboard:** `site/` (static HTML + `forecast.json`), deployed to GitHub Pages by
+`.github/workflows/pages.yml`. Publish the latest forecast with `make publish`.
+Wakeboarding rule: `src/murray/rules/wakeboarding.yaml` (good 2.30–3.00 m, wind ≤ 23 km/h).
+
 **How it works (one page):** [docs/how-it-works.md](docs/how-it-works.md)
 
 ## Local stack
@@ -36,6 +40,7 @@ Reset everything (re-runs the Postgres init script): `docker compose --env-file 
 raw_gauges_daily (10:00 Melbourne)          → raw.gauge_daily        (Iceberg, append-only)
    └─ asset update ─▶ features_barmah        → features.barmah_daily  (Iceberg, offline store)
                                                └─ feast materialize   → Valkey (online store)
+   └─ asset (online) ─▶ inference_barmah      → predictions.barmah_forecast + site/forecast.json
 training_barmah (weekly, Sun 03:00)         → Feast historical features + labels → LightGBM
                                                → MLflow `barmah-level-forecast`, @champion only if better
 ```

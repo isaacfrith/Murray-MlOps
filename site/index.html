@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Barmah River Forecast</title>
+<meta name="description" content="7-day Murray River level forecast at Barmah with a wakeboarding rating.">
+<style>
+  :root {
+    --bg: #f6f7f4; --card: #ffffff; --text: #1d2420; --muted: #5d6b63; --line: #dde3dc;
+    --river: #1f6f8b; --forecast: #d9822b;
+    --good: #2e7d4f; --good-bg: #e3f2e8; --marginal: #a26a00; --marginal-bg: #fbf0d9;
+    --nogo: #b23a3a; --nogo-bg: #f8e1e1; --none: #5d6b63; --none-bg: #eceeea;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121614; --card: #1b211e; --text: #e6ece8; --muted: #9aa8a0; --line: #2c3530;
+      --river: #5fb3d1; --forecast: #f0a356;
+      --good: #6fcf97; --good-bg: #1d3226; --marginal: #f2c14e; --marginal-bg: #3a3020;
+      --nogo: #f08080; --nogo-bg: #3b2222; --none: #9aa8a0; --none-bg: #262c29;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121614; --card: #1b211e; --text: #e6ece8; --muted: #9aa8a0; --line: #2c3530;
+    --river: #5fb3d1; --forecast: #f0a356;
+    --good: #6fcf97; --good-bg: #1d3226; --marginal: #f2c14e; --marginal-bg: #3a3020;
+    --nogo: #f08080; --nogo-bg: #3b2222; --none: #9aa8a0; --none-bg: #262c29;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .status { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+            padding: 14px 16px; margin-bottom: 20px; }
+  .status strong { font-size: 1.15rem; }
+  .days { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+  .day { border-radius: 12px; padding: 12px; border: 1px solid var(--line); background: var(--card); }
+  .day .date { font-weight: 600; }
+  .day .rating { display: inline-block; margin: 6px 0; padding: 2px 8px; border-radius: 999px;
+                 font-size: .85rem; font-weight: 600; }
+  .good .rating { color: var(--good); background: var(--good-bg); }
+  .marginal .rating { color: var(--marginal); background: var(--marginal-bg); }
+  .no-go .rating { color: var(--nogo); background: var(--nogo-bg); }
+  .none .rating { color: var(--none); background: var(--none-bg); }
+  .day .num { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+  .day .meta, .day .why { color: var(--muted); font-size: .85rem; }
+  .day .why { margin-top: 6px; }
+  section { margin-top: 28px; }
+  h2 { font-size: 1.1rem; margin: 0 0 10px; }
+  .chart { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  svg { width: 100%; height: auto; display: block; }
+  .legend { color: var(--muted); font-size: .85rem; margin-top: 6px; }
+  .legend span { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin: 0 6px 0 12px; }
+  footer { margin-top: 32px; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 16px; }
+  footer a { color: inherit; }
+  .error { color: var(--nogo); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Murray River at Barmah</h1>
+  <p class="sub">7-day river level forecast and a wakeboarding rating</p>
+
+  <div class="status" id="status">Loading forecast…</div>
+  <div class="days" id="days"></div>
+
+  <section>
+    <h2>Level: last 30 days and next 7</h2>
+    <div class="chart"><svg id="chart" viewBox="0 0 900 300" role="img" aria-label="River level chart"></svg>
+      <div class="legend"><span style="background:var(--river)"></span>observed
+        <span style="background:var(--forecast)"></span>forecast
+        <span style="background:var(--good);opacity:.35;height:10px"></span>good range</div>
+    </div>
+  </section>
+
+  <footer>
+    <p><strong>A planning aid, not a safety tool.</strong> Always check conditions on the day and local boating rules.
+       The "good" range comes from a handful of personal trips and will change as more days are logged.</p>
+    <p>River data: State of Victoria (DEECA) Water Measurement Information System and WaterNSW Real Time Water,
+       CC BY 4.0, the sources behind <a href="https://riverdata.mdba.gov.au/">MDBA River Murray Data</a>.
+       <a href="https://open-meteo.com/">Weather data by Open-Meteo.com</a>, CC BY 4.0.
+       Forecast: LightGBM model, retrained weekly, promoted only when it beats the current model.</p>
+    <p id="meta"></p>
+  </footer>
+</main>
+
+<script>
+const RATING_CLASS = { "good": "good", "marginal": "marginal", "no-go": "no-go", "no forecast": "none" };
+const GOOD = [2.30, 3.00]; // keep in sync with src/murray/rules/wakeboarding.yaml
+
+const fmtDay = iso => new Date(iso + "T00:00:00").toLocaleDateString("en-AU",
+  { weekday: "short", day: "numeric", month: "short" });
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function renderDays(days) {
+  const box = document.getElementById("days");
+  for (const d of days) {
+    const card = el("div", "day " + (RATING_CLASS[d.rating] || "none"));
+    card.append(el("div", "date", fmtDay(d.date)), el("div", "rating", d.rating),
+      el("div", "num", d.level_m.toFixed(2) + " m"),
+      el("div", "meta", d.wind_kmh == null ? "wind: n/a" : "wind " + Math.round(d.wind_kmh) + " km/h"),
+      // Reasons only matter when a day isn't good.
+      el("div", "why", d.rating === "good" ? "" : d.reasons.join(" · ")));
+    box.append(card);
+  }
+}
+
+function renderChart(history, days) {
+  const svg = document.getElementById("chart");
+  const W = 900, H = 300, L = 48, R = 12, T = 12, B = 32;
+  const pts = [...history.map(p => ({ d: p.date, v: p.level_m, f: false })),
+               ...days.map(p => ({ d: p.date, v: p.level_m, f: true }))];
+  if (!pts.length) return;
+  const vals = pts.map(p => p.v).concat(GOOD);
+  const lo = Math.floor((Math.min(...vals) - 0.1) * 10) / 10, hi = Math.ceil((Math.max(...vals) + 0.1) * 10) / 10;
+  const x = i => L + (W - L - R) * i / (pts.length - 1);
+  const y = v => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+  const ns = "http://www.w3.org/2000/svg";
+  const add = (tag, attrs) => { const e = document.createElementNS(ns, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); svg.append(e); return e; };
+  const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+  add("rect", { x: L, y: y(GOOD[1]), width: W - L - R, height: y(GOOD[0]) - y(GOOD[1]),
+                fill: css("--good"), opacity: 0.12 });
+  for (let v = lo; v <= hi + 1e-9; v += 0.1) {
+    if (Math.round(v * 10) % 2) continue;
+    add("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: css("--line") });
+    add("text", { x: L - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 12, fill: css("--muted") })
+      .textContent = v.toFixed(1);
+  }
+  const path = sel => sel.map(([p, i]) => `${x(i)},${y(p.v)}`).join(" ");
+  const idx = pts.map((p, i) => [p, i]);
+  const obs = idx.filter(([p]) => !p.f), fc = idx.filter(([p]) => p.f);
+  add("polyline", { points: path(obs), fill: "none", stroke: css("--river"), "stroke-width": 2.5 });
+  if (fc.length && obs.length) add("polyline", { points: path([obs[obs.length - 1], ...fc]), fill: "none",
+    stroke: css("--forecast"), "stroke-width": 2.5, "stroke-dasharray": "6 4" });
+  for (const i of [0, obs.length - 1, pts.length - 1]) {
+    if (i < 0) continue;
+    add("text", { x: x(i), y: H - 10, "text-anchor": i === 0 ? "start" : i === pts.length - 1 ? "end" : "middle",
+                  "font-size": 12, fill: css("--muted") }).textContent = fmtDay(pts[i].d);
+  }
+}
+
+fetch("forecast.json", { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+  .then(f => {
+    const status = document.getElementById("status");
+    if (f.status !== "ok") {
+      status.innerHTML = "";
+      status.append(el("strong", null, "No forecast right now"), el("div", null, f.reason || ""));
+    } else {
+      const goodDays = f.days.filter(d => d.rating === "good").length;
+      status.innerHTML = "";
+      status.append(el("strong", null, `${goodDays} of ${f.days.length} days look good`),
+        el("div", null, `Last reading ${f.observed_level_m.toFixed(2)} m on ${fmtDay(f.observed_date)}`));
+      renderDays(f.days);
+      renderChart(f.history, f.days);
+    }
+    document.getElementById("meta").textContent =
+      `Issued ${new Date(f.issued_at).toLocaleString("en-AU")} · model v${f.model_version} · rule v${f.rule_version}`;
+  })
+  .catch(e => {
+    const s = document.getElementById("status");
+    s.innerHTML = "";
+    s.append(el("strong", "error", "Could not load the forecast"), el("div", null, String(e)));
+  });
+</script>
+</body>
+</html>

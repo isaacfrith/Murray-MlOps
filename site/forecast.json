@@ -1,0 +1,210 @@
+{
+  "site": "Murray River at Barmah (409215)",
+  "issued_at": "2026-10-26T03:33:33.598970+00:00",
+  "model_version": "1",
+  "rule_version": 1,
+  "status": "ok",
+  "observed_date": "2026-10-25",
+  "observed_level_m": 2.73,
+  "days": [
+    {
+      "date": "2026-10-26",
+      "horizon": 1,
+      "level_m": 2.729,
+      "wind_kmh": 17.9,
+      "rating": "good",
+      "reasons": [
+        "level 2.73 m in good range",
+        "wind 18 km/h"
+      ]
+    },
+    {
+      "date": "2026-10-27",
+      "horizon": 2,
+      "level_m": 2.724,
+      "wind_kmh": 16.0,
+      "rating": "good",
+      "reasons": [
+        "level 2.72 m in good range",
+        "wind 16 km/h"
+      ]
+    },
+    {
+      "date": "2026-10-28",
+      "horizon": 3,
+      "level_m": 2.719,
+      "wind_kmh": 16.9,
+      "rating": "good",
+      "reasons": [
+        "level 2.72 m in good range",
+        "wind 17 km/h"
+      ]
+    },
+    {
+      "date": "2026-10-29",
+      "horizon": 4,
+      "level_m": 2.718,
+      "wind_kmh": 10.6,
+      "rating": "good",
+      "reasons": [
+        "level 2.72 m in good range",
+        "wind 11 km/h"
+      ]
+    },
+    {
+      "date": "2026-10-30",
+      "horizon": 5,
+      "level_m": 2.725,
+      "wind_kmh": 13.6,
+      "rating": "good",
+      "reasons": [
+        "level 2.73 m in good range",
+        "wind 14 km/h"
+      ]
+    },
+    {
+      "date": "2026-10-31",
+      "horizon": 6,
+      "level_m": 2.712,
+      "wind_kmh": 20.2,
+      "rating": "good",
+      "reasons": [
+        "level 2.71 m in good range",
+        "wind 20 km/h"
+      ]
+    },
+    {
+      "date": "2026-11-01",
+      "horizon": 7,
+      "level_m": 2.703,
+      "wind_kmh": 10.7,
+      "rating": "good",
+      "reasons": [
+        "level 2.70 m in good range",
+        "wind 11 km/h"
+      ]
+    }
+  ],
+  "history": [
+    {
+      "date": "2026-09-26",
+      "level_m": 2.887
+    },
+    {
+      "date": "2026-09-27",
+      "level_m": 2.855
+    },
+    {
+      "date": "2026-09-28",
+      "level_m": 2.835
+    },
+    {
+      "date": "2026-09-29",
+      "level_m": 2.824
+    },
+    {
+      "date": "2026-09-30",
+      "level_m": 2.815
+    },
+    {
+      "date": "2026-10-01",
+      "level_m": 2.814
+    },
+    {
+      "date": "2026-10-02",
+      "level_m": 2.826
+    },
+    {
+      "date": "2026-10-03",
+      "level_m": 2.843
+    },
+    {
+      "date": "2026-10-04",
+      "level_m": 2.839
+    },
+    {
+      "date": "2026-10-05",
+      "level_m": 2.839
+    },
+    {
+      "date": "2026-10-06",
+      "level_m": 2.833
+    },
+    {
+      "date": "2026-10-07",
+      "level_m": 2.816
+    },
+    {
+      "date": "2026-10-08",
+      "level_m": 2.8
+    },
+    {
+      "date": "2026-10-09",
+      "level_m": 2.791
+    },
+    {
+      "date": "2026-10-10",
+      "level_m": 2.782
+    },
+    {
+      "date": "2026-10-11",
+      "level_m": 2.77
+    },
+    {
+      "date": "2026-10-12",
+      "level_m": 2.763
+    },
+    {
+      "date": "2026-10-13",
+      "level_m": 2.75
+    },
+    {
+      "date": "2026-10-14",
+      "level_m": 2.733
+    },
+    {
+      "date": "2026-10-15",
+      "level_m": 2.726
+    },
+    {
+      "date": "2026-10-16",
+      "level_m": 2.726
+    },
+    {
+      "date": "2026-10-17",
+      "level_m": 2.721
+    },
+    {
+      "date": "2026-10-18",
+      "level_m": 2.715
+    },
+    {
+      "date": "2026-10-19",
+      "level_m": 2.71
+    },
+    {
+      "date": "2026-10-20",
+      "level_m": 2.707
+    },
+    {
+      "date": "2026-10-21",
+      "level_m": 2.71
+    },
+    {
+      "date": "2026-10-22",
+      "level_m": 2.713
+    },
+    {
+      "date": "2026-10-23",
+      "level_m": 2.719
+    },
+    {
+      "date": "2026-10-24",
+      "level_m": 2.722
+    },
+    {
+      "date": "2026-10-25",
+      "level_m": 2.73
+    }
+  ]
+}

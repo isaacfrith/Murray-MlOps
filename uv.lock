@@ -1611,6 +1611,7 @@ dependencies = [
     { name = "mlflow-skinny" },
     { name = "pandas" },
     { name = "pyiceberg", extra = ["pyarrow", "pyiceberg-core", "sql-postgres"] },
+    { name = "pyyaml" },
     { name = "redis" },
 ]
 
@@ -1631,6 +1632,7 @@ requires-dist = [
     { name = "mlflow-skinny", specifier = "==3.17.2" },
     { name = "pandas", specifier = "<3" },
     { name = "pyiceberg", extras = ["pyarrow", "pyiceberg-core", "sql-postgres"], specifier = ">=0.12.0" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "redis", specifier = "<8" },
 ]
 

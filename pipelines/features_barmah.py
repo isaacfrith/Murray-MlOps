@@ -30,7 +30,7 @@ BARMAH_FEATURES = Asset("iceberg://lakehouse/features/barmah_daily")
                   "execution_timeout": timedelta(minutes=30)},
 )
 def features_barmah():
-    @task.external_python(python=MURRAY_PYTHON, outlets=[BARMAH_FEATURES])
+    @task.external_python(python=MURRAY_PYTHON)
     def build_features() -> int:
         import logging
 
@@ -45,7 +45,8 @@ def features_barmah():
 
         return apply_definitions()
 
-    @task.external_python(python=MURRAY_PYTHON)
+    # The asset is "updated" once features are ONLINE (in Valkey), which is what inference reads.
+    @task.external_python(python=MURRAY_PYTHON, outlets=[BARMAH_FEATURES])
     def materialize() -> str:
         from murray.pipelines.feature_pipeline import materialize
 
