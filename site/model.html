@@ -55,6 +55,14 @@
   </section>
 
   <section>
+    <h2>Live accuracy (since go-live)</h2>
+    <p class="note">Every published forecast is checked against what Barmah actually did once that day's
+      reading arrives. If live error runs above 1.5× the backtest error, retraining is triggered
+      automatically (the new model still has to beat the champion to replace it).</p>
+    <div id="live"></div>
+  </section>
+
+  <section>
     <h2>Model history (MLflow registry)</h2>
     <p class="note">Every trained version. A new version becomes champion only if it beats both the
       "no change" baseline and the current champion on the same test period. Ties don't count.</p>
@@ -265,10 +273,31 @@ function toggle(btnId, boxId, onLabel, offLabel) {
   };
 }
 
+function renderLive(mon) {
+  const box = document.getElementById("live");
+  if (!mon) { box.append(el("p", "note", "Monitoring data not published yet.")); return; }
+  if (!mon.matured) {
+    const due = mon.first_target_date ? fmtDay(mon.first_target_date) : "the first forecast day";
+    box.append(el("p", null, `Nothing to check yet: the first live forecast is for ${due}, and is ` +
+      `scored the morning after that day's reading is published.`));
+    return;
+  }
+  const label = { ok: "OK", waiting: "waiting", degraded: "DEGRADED" };
+  box.append(el("p", null, mon.degraded
+    ? "⚠ Live error is above threshold on at least one horizon; retraining was triggered."
+    : `${mon.matured} matured forecasts checked (last ${mon.window_days} days). No degradation.`));
+  const cm = v => v == null ? "—" : (v * 100).toFixed(1);
+  box.append(table(mon.horizons.map(h => ({ cells: [h.horizon, h.n, cm(h.live_mae_m), cm(h.backtest_mae_m),
+    cm(h.persistence_mae_m), label[h.status] || h.status] })),
+    ["Days ahead", "Checked", "Live error (cm)", "Backtest (cm)", "No change (cm)", "Status"]));
+}
+
 Promise.all([
   fetch("forecast.json", { cache: "no-store" }).then(r => r.json()),
   fetch("models.json", { cache: "no-store" }).then(r => r.json()),
-]).then(([forecast, models]) => {
+  fetch("monitoring.json", { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null),
+]).then(([forecast, models, monitoring]) => {
+  renderLive(monitoring);
   const card = models.champion_card;
   const champ = models.history.find(v => v.champion);
   document.getElementById("intro").textContent =

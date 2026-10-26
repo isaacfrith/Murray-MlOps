@@ -1,0 +1,27 @@
+# Unit tests on every pull request and push to main. Integration tests need the local Docker
+# stack (Postgres, SeaweedFS, MLflow, Valkey), so CI runs only the pure-function tests: features,
+# leakage, labels, model, SHAP additivity, wakeboarding rule, monitoring.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.2"
+          enable-cache: true
+      - name: Lockfile is up to date
+        run: uv lock --check
+      - name: Install (from uv.lock, exactly)
+        run: uv sync --frozen
+      - name: Unit tests
+        run: uv run pytest -q -m "not integration"
+      - name: DAG files are valid Python
+        run: python -m py_compile pipelines/*.py

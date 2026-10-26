@@ -6,6 +6,8 @@ pipelines that share only a feature store (Feast) and a model registry (MLflow).
 
 **Dashboard:** `site/` (static HTML + `forecast.json`), deployed to GitHub Pages by
 `.github/workflows/pages.yml`. Publish the latest forecast with `make publish`.
+CI (`.github/workflows/ci.yml`) runs the unit tests and a lockfile check on every pull request;
+`make unit` runs the same locally.
 Wakeboarding rule: `src/murray/rules/wakeboarding.yaml` (good 2.30–3.00 m, wind ≤ 23 km/h).
 
 **Model page:** `site/model.html` explains the champion: SHAP "why this forecast" per day,
@@ -49,6 +51,7 @@ raw_gauges_daily (10:00 Melbourne)          → raw.gauge_daily        (Iceberg,
    └─ asset update ─▶ features_barmah        → features.barmah_daily  (Iceberg, offline store)
                                                └─ feast materialize   → Valkey (online store)
    └─ asset (online) ─▶ inference_barmah      → predictions.barmah_forecast + site/forecast.json
+   └─ asset (raw) ─▶ monitoring_barmah        → live error vs backtest → retrain now if degraded
 training_barmah (weekly, Sun 03:00)         → Feast historical features + labels → LightGBM
                                                → MLflow `barmah-level-forecast`, @champion only if better
 ```
