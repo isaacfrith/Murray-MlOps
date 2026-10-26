@@ -1,0 +1,20 @@
+# Feast config. ${VARS} are expanded from the environment at load time
+# (murray.io.feature_store.get_store() sets them from .env / Airflow env).
+project: murray
+provider: local
+
+# Registry = Feast's catalog of entities/feature views, stored as one file in S3.
+registry:
+  path: s3://lakehouse/feast/registry.pb
+  cache_ttl_seconds: 60
+
+# Offline store: DuckDB engine reading Iceberg tables via PyIceberg (IcebergSource).
+offline_store:
+  type: duckdb
+
+# Online store: Valkey speaks the Redis protocol.
+online_store:
+  type: redis
+  connection_string: ${VALKEY_HOST}:${VALKEY_PORT},password=${VALKEY_PASSWORD}
+
+entity_key_serialization_version: 3

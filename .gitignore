@@ -1,4 +1,7 @@
 .env
-.venv
+.venv/
 __pycache__/
-.DS_store
+.DS_Store
+
+# Personal trip log (location history) — kept out of the public repo
+data/trips.csv

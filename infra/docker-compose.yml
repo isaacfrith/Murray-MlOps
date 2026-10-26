@@ -1,0 +1,258 @@
+# Run from the repo root:
+#   docker compose --env-file .env -f infra/docker-compose.yml up -d
+# (--env-file is needed because Compose otherwise looks for .env next to this file.)
+name: murray
+
+# ---------------------------------------------------------------------------
+# Airflow 3 (LocalExecutor): shared settings for every Airflow container.
+# ---------------------------------------------------------------------------
+x-airflow-common: &airflow-common
+  build:
+    context: ..                      # repo root: needs pyproject.toml, uv.lock, src/
+    dockerfile: infra/airflow/Dockerfile
+  image: murray/airflow:3.3.2
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__PARALLELISM: "4"
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:?set in .env}
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${AIRFLOW_DB_PASSWORD:?set in .env}@postgres:5432/airflow
+    # Airflow 3: tasks talk to the API server (Task Execution API), not to the DB directly.
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET:?set in .env}
+    AIRFLOW__API__WORKERS: "1"
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: admin:admin
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: /opt/airflow/simple_auth_passwords.json
+
+    # --- murray pipeline code (runs in /opt/murray/.venv). Same variables as the laptop's
+    # .env, but INSIDE Docker every service is reached by its compose service name and its
+    # container port. `localhost` here would mean "this Airflow container".
+    POSTGRES_HOST: postgres                       # laptop: localhost
+    POSTGRES_PORT: "5432"
+    S3_ENDPOINT: http://seaweedfs:8333            # laptop: http://localhost:8333
+    MLFLOW_TRACKING_URI: http://mlflow:5000       # laptop: http://localhost:5050 (host port)
+    VALKEY_HOST: valkey                           # laptop: localhost
+    VALKEY_PORT: "6379"
+    ICEBERG_DB_PASSWORD: ${ICEBERG_DB_PASSWORD:?set in .env}
+    S3_ACCESS_KEY: ${S3_ACCESS_KEY:?set in .env}
+    S3_SECRET_KEY: ${S3_SECRET_KEY:?set in .env}
+    S3_REGION: ${S3_REGION:-us-east-1}
+    VALKEY_PASSWORD: ${VALKEY_PASSWORD:?set in .env}
+    FEAST_REPO_PATH: /opt/murray/features
+    SITE_DIR: /opt/murray/site
+    MLFLOW_DISABLE_AGENT_HINT: "1"
+  volumes:
+    - ../pipelines:/opt/airflow/dags:ro          # DAG files: edit on the laptop, picked up live
+    - ../features:/opt/murray/features:ro        # Feast repo (feature_store.yaml, definitions.py)
+    - ../site:/opt/murray/site                   # inference writes forecast.json here (read-write)
+    - airflow-logs:/opt/airflow/logs
+  depends_on: &airflow-depends
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:17.11-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      ICEBERG_DB_PASSWORD: ${ICEBERG_DB_PASSWORD:?set in .env}
+      MLFLOW_DB_PASSWORD: ${MLFLOW_DB_PASSWORD:?set in .env}
+      AIRFLOW_DB_PASSWORD: ${AIRFLOW_DB_PASSWORD:?set in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    mem_limit: 512m
+    restart: unless-stopped
+
+  # All-in-one: master + volume + filer + S3 gateway in one process.
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.48
+    command: >
+      server -s3 -ip=seaweedfs -ip.bind=0.0.0.0
+      -master.telemetry=false
+    environment:
+      # SeaweedFS creates an admin S3 identity from these (no s3.json needed).
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:?set in .env}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?set in .env}
+    volumes:
+      - seaweedfs-data:/data
+    ports:
+      - "127.0.0.1:8333:8333"   # S3 API
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8333/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+    mem_limit: 512m
+    restart: unless-stopped
+
+  # One-off job: exits 0 whether or not the bucket already exists.
+  create-bucket:
+    image: amazon/aws-cli:2.38.5
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:?set in .env}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?set in .env}
+      AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
+      AWS_ENDPOINT_URL: http://seaweedfs:8333
+    entrypoint: ["sh", "-c"]
+    command:
+      - aws s3api head-bucket --bucket lakehouse 2>/dev/null
+        && echo "bucket lakehouse already exists"
+        || aws s3api create-bucket --bucket lakehouse
+    mem_limit: 256m
+    restart: "no"
+
+  # Tracking server + model registry. Metadata → Postgres (mlflow DB), artifacts → S3.
+  # --serve-artifacts: clients upload/download artifacts *through* this server, so
+  # training code needs only MLFLOW_TRACKING_URI, never S3 credentials.
+  mlflow:
+    build: ./mlflow
+    image: murray/mlflow:3.17.2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      create-bucket:
+        condition: service_completed_successfully
+    environment:
+      MLFLOW_BACKEND_STORE_URI: postgresql+psycopg2://mlflow:${MLFLOW_DB_PASSWORD:?set in .env}@postgres:5432/mlflow
+      MLFLOW_S3_ENDPOINT_URL: http://seaweedfs:8333
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:?set in .env}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?set in .env}
+      AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
+      # MLflow 3 starts ~7 background job workers (GenAI scoring, trace archival),
+      # ~200 MB each. Not needed for classic tracking + registry.
+      MLFLOW_SERVER_ENABLE_JOB_EXECUTION: "false"
+    command: >
+      mlflow server
+      --host 0.0.0.0 --port 5000 --workers 1
+      --serve-artifacts --artifacts-destination s3://lakehouse/mlflow
+      --allowed-hosts localhost,localhost:*,127.0.0.1:*,mlflow,mlflow:*
+    ports:
+      - "127.0.0.1:5050:5000"   # 5000 on macOS is taken by AirPlay Receiver
+    healthcheck:
+      # No curl in this image; use Python.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    mem_limit: 768m
+    restart: unless-stopped
+
+  # Feast online store: latest feature values per entity, read at inference time.
+  # It is a *derived* cache (rebuilt by `feast materialize` from the Iceberg offline store),
+  # so persistence is a convenience for restarts, not the source of truth.
+  valkey:
+    image: valkey/valkey:9.1.2-alpine
+    environment:
+      VALKEY_PASSWORD: ${VALKEY_PASSWORD:?set in .env}
+      REDISCLI_AUTH: ${VALKEY_PASSWORD:?set in .env}   # lets valkey-cli in the healthcheck auth without -a
+    command:
+      - sh
+      - -c
+      - >-
+        exec valkey-server
+        --requirepass "$$VALKEY_PASSWORD"
+        --maxmemory 256mb
+        --maxmemory-policy noeviction
+        --save 300 1
+        --appendonly no
+    volumes:
+      - valkey-data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    mem_limit: 384m
+    restart: unless-stopped
+
+  # One-off: create/upgrade the Airflow schema in the `airflow` database.
+  airflow-init:
+    <<: *airflow-common
+    command: ["db", "migrate"]
+    mem_limit: 768m
+    restart: "no"
+
+  # UI + REST API + Task Execution API. http://localhost:8080 (user admin).
+  airflow-apiserver:
+    <<: *airflow-common
+    environment:
+      <<: *airflow-env
+      AIRFLOW_ADMIN_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:?set in .env}
+    # Simple auth manager reads passwords from a JSON file; write it from .env at start.
+    entrypoint: ["bash", "-c"]
+    command:
+      - >-
+        printf '{"admin": "%s"}' "$$AIRFLOW_ADMIN_PASSWORD" > /opt/airflow/simple_auth_passwords.json
+        && exec /entrypoint airflow api-server
+    depends_on:
+      <<: *airflow-depends
+      airflow-init:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/v2/monitor/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    mem_limit: 1g
+    restart: unless-stopped
+
+  # Schedules DAG runs; with LocalExecutor it also RUNS the tasks (as subprocesses),
+  # so pipeline memory (pandas, pyiceberg, lightgbm) counts against this container.
+  airflow-scheduler:
+    <<: *airflow-common
+    command: ["scheduler"]
+    depends_on:
+      <<: *airflow-depends
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "airflow", "jobs", "check", "--job-type", "SchedulerJob", "--local"]
+      interval: 30s
+      timeout: 20s
+      retries: 10
+      start_period: 30s
+    mem_limit: 1536m
+    restart: unless-stopped
+
+  # Airflow 3 parses DAG files in a separate process (no longer inside the scheduler).
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: ["dag-processor"]
+    depends_on:
+      <<: *airflow-depends
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "airflow", "jobs", "check", "--job-type", "DagProcessorJob", "--local"]
+      interval: 30s
+      timeout: 20s
+      retries: 10
+      start_period: 30s
+    mem_limit: 768m
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  seaweedfs-data:
+  valkey-data:
+  airflow-logs:

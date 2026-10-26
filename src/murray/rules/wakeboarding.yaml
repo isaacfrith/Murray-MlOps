@@ -1,0 +1,21 @@
+# Wakeboarding rating rule for the Murray River at Barmah (gauge 409215).
+#
+# Evidence: 5 personal trips, all rated "good" (Dec 2024 – Oct 2026): Barmah level
+# 2.35–2.98 m, max wind 14–22 km/h. With positives only, the edges below are judgement,
+# agreed 2026-10-26; widen them as more days (especially poor ones) are logged.
+#
+# A planning aid, not a safety tool. Check local conditions and boating rules.
+version: 1
+
+level_m:
+  no_forecast_above: 4.00   # flood conditions: history too thin to forecast; don't guess
+  no_go_below: 2.00         # snags and sandbars at low water
+  no_go_above: 3.50         # fast water, debris, river spreading into Barmah Forest
+  good_min: 2.30            # observed good days: 2.35–2.98 m (padded slightly)
+  good_max: 3.00            # between the good and no-go limits → marginal
+
+wind_max_kmh:
+  good_max: 23              # observed good days: 14.3–22.3 km/h (22 agreed; 23 keeps 12 Jan 2025 good)
+  marginal_max: 30          # above this → no-go
+
+fast_change_m_per_day: 0.10 # bigger day-to-day level change → one band worse
