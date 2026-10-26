@@ -20,6 +20,7 @@ from murray.io.feature_store import get_store
 from murray.io.raw_tables import gauge_daily_table
 from murray.io.registry import configure
 from murray.models.evaluate import mae_by_horizon, persistence_forecast, score_table
+from murray.models.explain import model_card
 from murray.models.forecaster import (
     DEFAULT_PARAMS,
     BarmahForecaster,
@@ -143,6 +144,9 @@ def run(params: dict | None = None, promote: bool = True, run_name: str | None =
             input_example=example, signature=infer_signature(example, model.predict(None, example)),
         )
         version = info.registered_model_version
+        # Model card (global SHAP, effect plot, backtest) for every run, promoted or not.
+        mlflow.log_dict(model_card(model, te, version=str(version), feature_set=feature_set),
+                        "explain/model_card.json")
 
         # --- Promotion -----------------------------------------------------------------
         champ_version, champ_mae = _champion_mae(te)

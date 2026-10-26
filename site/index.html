@@ -5,61 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Barmah River Forecast</title>
 <meta name="description" content="7-day Murray River level forecast at Barmah with a wakeboarding rating.">
-<style>
-  :root {
-    --bg: #f6f7f4; --card: #ffffff; --text: #1d2420; --muted: #5d6b63; --line: #dde3dc;
-    --river: #1f6f8b; --forecast: #d9822b;
-    --good: #2e7d4f; --good-bg: #e3f2e8; --marginal: #a26a00; --marginal-bg: #fbf0d9;
-    --nogo: #b23a3a; --nogo-bg: #f8e1e1; --none: #5d6b63; --none-bg: #eceeea;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #121614; --card: #1b211e; --text: #e6ece8; --muted: #9aa8a0; --line: #2c3530;
-      --river: #5fb3d1; --forecast: #f0a356;
-      --good: #6fcf97; --good-bg: #1d3226; --marginal: #f2c14e; --marginal-bg: #3a3020;
-      --nogo: #f08080; --nogo-bg: #3b2222; --none: #9aa8a0; --none-bg: #262c29;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #121614; --card: #1b211e; --text: #e6ece8; --muted: #9aa8a0; --line: #2c3530;
-    --river: #5fb3d1; --forecast: #f0a356;
-    --good: #6fcf97; --good-bg: #1d3226; --marginal: #f2c14e; --marginal-bg: #3a3020;
-    --nogo: #f08080; --nogo-bg: #3b2222; --none: #9aa8a0; --none-bg: #262c29;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
-  h1 { font-size: 1.6rem; margin: 0 0 4px; }
-  .sub { color: var(--muted); margin: 0 0 20px; }
-  .status { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-            padding: 14px 16px; margin-bottom: 20px; }
-  .status strong { font-size: 1.15rem; }
-  .days { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-  .day { border-radius: 12px; padding: 12px; border: 1px solid var(--line); background: var(--card); }
-  .day .date { font-weight: 600; }
-  .day .rating { display: inline-block; margin: 6px 0; padding: 2px 8px; border-radius: 999px;
-                 font-size: .85rem; font-weight: 600; }
-  .good .rating { color: var(--good); background: var(--good-bg); }
-  .marginal .rating { color: var(--marginal); background: var(--marginal-bg); }
-  .no-go .rating { color: var(--nogo); background: var(--nogo-bg); }
-  .none .rating { color: var(--none); background: var(--none-bg); }
-  .day .num { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
-  .day .meta, .day .why { color: var(--muted); font-size: .85rem; }
-  .day .why { margin-top: 6px; }
-  section { margin-top: 28px; }
-  h2 { font-size: 1.1rem; margin: 0 0 10px; }
-  .chart { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
-  svg { width: 100%; height: auto; display: block; }
-  .legend { color: var(--muted); font-size: .85rem; margin-top: 6px; }
-  .legend span { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin: 0 6px 0 12px; }
-  footer { margin-top: 32px; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 16px; }
-  footer a { color: inherit; }
-  .error { color: var(--nogo); }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main>
+  <nav><a href="index.html" aria-current="page">Forecast</a><a href="model.html">How the model works</a></nav>
   <h1>Murray River at Barmah</h1>
   <p class="sub">7-day river level forecast and a wakeboarding rating</p>
 
@@ -109,6 +59,9 @@ function renderDays(days) {
       el("div", "meta", d.wind_kmh == null ? "wind: n/a" : "wind " + Math.round(d.wind_kmh) + " km/h"),
       // Reasons only matter when a day isn't good.
       el("div", "why", d.rating === "good" ? "" : d.reasons.join(" · ")));
+    const why = el("a", "why-link", "why?");
+    why.href = "model.html#day=" + d.date;
+    card.append(why);
     box.append(card);
   }
 }
