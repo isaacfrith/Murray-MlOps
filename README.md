@@ -4,6 +4,8 @@ Forecasts the Murray River's height at Barmah 1–7 days ahead and turns it into
 "good for wakeboarding?" rating. Built with feature / training / inference (FTI)
 pipelines that share only a feature store (Feast) and a model registry (MLflow).
 
+**How it works (one page):** [docs/how-it-works.md](docs/how-it-works.md)
+
 ## Local stack
 
 ```bash
