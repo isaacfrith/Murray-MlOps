@@ -15,7 +15,11 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/murray/.venv \
     UV_COMPILE_BYTECODE=1
 
 USER root
-RUN mkdir -p /opt/murray && chown airflow:0 /opt/murray
+# libgomp1: OpenMP runtime that LightGBM's Linux wheel links against.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libgomp1 \
+ && rm -rf /var/lib/apt/lists/* \
+ && mkdir -p /opt/murray && chown airflow:0 /opt/murray
 USER airflow
 WORKDIR /opt/murray
 

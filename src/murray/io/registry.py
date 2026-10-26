@@ -23,6 +23,7 @@ def configure() -> MlflowClient:
     # transfer through the tracking server instead (respecting an explicit override).
     os.environ.setdefault("MLFLOW_ENABLE_PROXY_MULTIPART_DOWNLOAD", "false")
     os.environ.setdefault("MLFLOW_ENABLE_PROXY_MULTIPART_UPLOAD", "false")
+    os.environ.setdefault("MLFLOW_DISABLE_AGENT_HINT", "1")  # silence an AI-assistant log hint
 
     uri = tracking_uri()
     mlflow.set_tracking_uri(uri)

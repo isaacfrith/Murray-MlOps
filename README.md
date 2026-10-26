@@ -36,7 +36,13 @@ Reset everything (re-runs the Postgres init script): `docker compose --env-file 
 raw_gauges_daily (10:00 Melbourne)          → raw.gauge_daily        (Iceberg, append-only)
    └─ asset update ─▶ features_barmah        → features.barmah_daily  (Iceberg, offline store)
                                                └─ feast materialize   → Valkey (online store)
+training_barmah (weekly, Sun 03:00)         → Feast historical features + labels → LightGBM
+                                               → MLflow `barmah-level-forecast`, @champion only if better
 ```
+
+**Current champion (v1, river-only, test 2022-01 → 2026-10):** mean error 1.1 cm (1 day ahead) →
+9.9 cm (7 days) vs persistence 3.4 → 20.4 cm, i.e. 51–68% better; 13 cm vs 39 cm at 7 days
+during release changes.
 
 Feast repo: `features/` (`feature_store.yaml`, `definitions.py`); registry in `s3://lakehouse/feast/registry.pb`.
 
