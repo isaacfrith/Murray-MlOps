@@ -54,6 +54,7 @@ raw_gauges_daily (10:00 Melbourne)          → raw.gauge_daily        (Iceberg,
    └─ asset update ─▶ features_barmah        → features.barmah_daily  (Iceberg, offline store)
                                                └─ feast materialize   → Valkey (online store)
    └─ asset (online) ─▶ inference_barmah      → predictions.barmah_forecast + site/forecast.json
+                          forecast >> second_opinion (Timestral, own venv) >> publish
    └─ asset (raw) ─▶ monitoring_barmah        → live error vs backtest → retrain now if degraded
 training_barmah (weekly, Sun 03:00)         → Feast historical features + labels → LightGBM
                                                → MLflow `barmah-level-forecast`, @champion only if better
@@ -67,6 +68,15 @@ during release changes.
 temperature and evaporation scored 5.39 cm mean vs 5.30 cm river-only, so it was not promoted.
 At Barmah the river is regulated and upstream rain already shows up in the Yarrawonga gauge.
 Weekly training keeps trying both feature sets; the promotion rule decides.
+
+**Second opinion: Timestral 28M (Mistral), zero-shot.** It's never trained here: it reads Barmah's
+(and Yarrawonga's) daily level history and returns quantiles. On the same test period it scored a
+4.76 cm mean vs LightGBM's 5.30 (LightGBM wins 1–2 days ahead, Timestral from 3 days on), and its
+80% range held the actual level 82% of the time. It's registered as `barmah-level-timestral@live`,
+shown under the main forecast, and never replaces it. It needs PyTorch, which can't share a venv
+with LightGBM (Feast imports torch whenever it's installed, and two OpenMP runtimes abort on
+macOS), so it lives in `.venv-timestral`: `make timestral-venv`, `make timestral-backtest`,
+`make second-opinion`. Weights are © Mistral AI, modified MIT licence.
 
 Feast repo: `features/` (`feature_store.yaml`, `definitions.py`); registry in `s3://lakehouse/feast/registry.pb`.
 
