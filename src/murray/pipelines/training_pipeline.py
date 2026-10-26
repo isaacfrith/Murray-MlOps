@@ -36,6 +36,7 @@ from murray.transforms.features import (
 )
 from murray.transforms.labels import HORIZONS, make_labels, time_split
 from murray.transforms.raw import latest
+from murray.transforms.weather_features import WEATHER_FEATURE_COLUMNS
 
 log = logging.getLogger(__name__)
 
@@ -44,7 +45,13 @@ MODEL_NAME = "barmah-level-forecast"
 CHAMPION = "champion"
 VAL_START = dt.date(2017, 1, 1)
 TEST_START = dt.date(2022, 1, 1)
-FEATURE_REFS = [f"barmah_daily:{c}" for c in FEATURE_COLUMNS]
+FEATURE_SETS = {
+    "river_only": list(FEATURE_COLUMNS),
+    "river_weather": list(FEATURE_COLUMNS) + list(WEATHER_FEATURE_COLUMNS),
+}
+# Always fetch everything, so any champion (whatever its feature set) can be re-scored.
+FEATURE_REFS = ([f"barmah_daily:{c}" for c in FEATURE_COLUMNS]
+                + [f"barmah_weather:{c}" for c in WEATHER_FEATURE_COLUMNS])
 
 
 def load_training_frame() -> pd.DataFrame:
@@ -80,14 +87,17 @@ def _champion_mae(test: pd.DataFrame) -> tuple[str | None, float | None]:
         return None, None
     try:
         model = mlflow.pyfunc.load_model(f"models:/{MODEL_NAME}@{CHAMPION}")
-        return version.version, _mean(mae_by_horizon(model.predict(test), test))
+        inputs = model.metadata.get_input_schema().input_names()  # the champion's own features
+        return version.version, _mean(mae_by_horizon(model.predict(test[inputs]), test))
     except Exception as exc:  # e.g. feature schema changed since that version
         log.warning("could not re-score champion v%s (%s); treating as no champion",
                     version.version, exc)
         return version.version, None
 
 
-def run(params: dict | None = None, promote: bool = True, run_name: str | None = None) -> dict:
+def run(params: dict | None = None, promote: bool = True, run_name: str | None = None,
+        feature_set: str = "river_only") -> dict:
+    cols = FEATURE_SETS[feature_set]
     client = configure()
     mlflow.set_experiment(EXPERIMENT)
 
@@ -98,15 +108,15 @@ def run(params: dict | None = None, promote: bool = True, run_name: str | None =
     with mlflow.start_run(run_name=run_name) as run:
         mlflow.log_params({
             **{f"lgb_{k}": v for k, v in {**DEFAULT_PARAMS, **(params or {})}.items()},
-            "features": "river_only", "n_features": len(FEATURE_COLUMNS),
+            "feature_set": feature_set, "n_features": len(cols),
             "val_start": VAL_START, "test_start": TEST_START, "embargo_days": max(HORIZONS),
             "train_rows": len(tr), "val_rows": len(va), "test_rows": len(te),
             "train_first_date": tr["obs_date"].min(), "test_last_date": te["obs_date"].max(),
         })
 
-        boosters = train(tr, va, params)
+        boosters = train(tr, va, params, feature_columns=cols)
         mlflow.log_params(best_iterations(boosters))
-        model = BarmahForecaster(boosters)
+        model = BarmahForecaster(boosters, feature_columns=cols)
         pred = model.predict(None, te)
 
         model_mae = mae_by_horizon(pred, te)
@@ -127,7 +137,7 @@ def run(params: dict | None = None, promote: bool = True, run_name: str | None =
             feature_importance(boosters).to_csv(os.path.join(tmp, "feature_importance.csv"))
             mlflow.log_artifacts(tmp, artifact_path="evaluation")
 
-        example = te[FEATURE_COLUMNS].head(5)
+        example = te[cols].head(5)
         info = mlflow.pyfunc.log_model(
             name="model", python_model=model, registered_model_name=MODEL_NAME,
             input_example=example, signature=infer_signature(example, model.predict(None, example)),

@@ -12,12 +12,15 @@ from airflow.sdk import Asset, chain, dag, task
 
 MURRAY_PYTHON = "/opt/murray/.venv/bin/python"
 RAW_GAUGE_DAILY = Asset("iceberg://lakehouse/raw/gauge_daily")
+RAW_WEATHER_DAILY = Asset("iceberg://lakehouse/raw/weather_daily")
 BARMAH_FEATURES = Asset("iceberg://lakehouse/features/barmah_daily")
 
 
 @dag(
     dag_id="features_barmah",
-    schedule=[RAW_GAUGE_DAILY],
+    # Either raw source updating triggers a rebuild (OR, not AND): a weather outage must
+    # not stop river features from refreshing.
+    schedule=(RAW_GAUGE_DAILY | RAW_WEATHER_DAILY),
     start_date=datetime(2026, 10, 1),
     catchup=False,
     max_active_runs=1,

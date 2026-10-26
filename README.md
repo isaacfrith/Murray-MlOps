@@ -44,6 +44,11 @@ training_barmah (weekly, Sun 03:00)         → Feast historical features + labe
 9.9 cm (7 days) vs persistence 3.4 → 20.4 cm, i.e. 51–68% better; 13 cm vs 39 cm at 7 days
 during release changes.
 
+**Weather experiment:** adding past rainfall (Barmah, Yarrawonga, Ovens@Wangaratta, Albury),
+temperature and evaporation scored 5.39 cm mean vs 5.30 cm river-only, so it was not promoted.
+At Barmah the river is regulated and upstream rain already shows up in the Yarrawonga gauge.
+Weekly training keeps trying both feature sets; the promotion rule decides.
+
 Feast repo: `features/` (`feature_store.yaml`, `definitions.py`); registry in `s3://lakehouse/feast/registry.pb`.
 
 Notebooks: `02_iceberg_sandbox` (Iceberg internals), `03_mlflow_tour` (MLflow storage, aliases, hostnames).
@@ -56,5 +61,5 @@ fetched with MDBA's [gauge-getter](https://github.com/MDBAuth/MDBA_Gauge_Getter)
   ([Water Measurement Information System](https://data.water.vic.gov.au/)), CC BY 4.0.
 - Murray River at Yarrawonga Weir (409025): © State Government of NSW and WaterNSW
   ([Real Time Water](https://realtimedata.waternsw.com.au/)), CC BY 4.0.
-Weather data: [Open-Meteo](https://open-meteo.com/) (CC BY 4.0).
+Weather data: [Weather data by Open-Meteo.com](https://open-meteo.com/) (CC BY 4.0), ERA5-based archive API.
 This is a planning aid, not a safety tool.

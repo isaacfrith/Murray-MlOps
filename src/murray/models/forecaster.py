@@ -31,15 +31,17 @@ def _delta_target(df: pd.DataFrame, h: int) -> pd.Series:
 
 
 def train(train_df: pd.DataFrame, val_df: pd.DataFrame, params: dict | None = None,
-          num_boost_round: int = 2000, early_stopping_rounds: int = 100) -> dict[int, lgb.Booster]:
+          num_boost_round: int = 2000, early_stopping_rounds: int = 100,
+          feature_columns: list[str] | None = None) -> dict[int, lgb.Booster]:
     """Fit one booster per horizon with early stopping on the validation period."""
     params = {**DEFAULT_PARAMS, **(params or {})}
+    cols = list(feature_columns or FEATURE_COLUMNS)
     boosters = {}
     for h in HORIZONS:
         tr = train_df[train_df[f"target_h{h}"].notna()]
         va = val_df[val_df[f"target_h{h}"].notna()]
-        dtrain = lgb.Dataset(tr[FEATURE_COLUMNS], _delta_target(tr, h))
-        dval = lgb.Dataset(va[FEATURE_COLUMNS], _delta_target(va, h), reference=dtrain)
+        dtrain = lgb.Dataset(tr[cols], _delta_target(tr, h))
+        dval = lgb.Dataset(va[cols], _delta_target(va, h), reference=dtrain)
         boosters[h] = lgb.train(
             params, dtrain, num_boost_round=num_boost_round, valid_sets=[dval],
             callbacks=[lgb.early_stopping(early_stopping_rounds, verbose=False)],
@@ -50,10 +52,11 @@ def train(train_df: pd.DataFrame, val_df: pd.DataFrame, params: dict | None = No
 class BarmahForecaster(mlflow.pyfunc.PythonModel):
     """MLflow-loadable bundle of the per-horizon boosters (stored as text, not pickled objects)."""
 
-    def __init__(self, boosters: dict[int, lgb.Booster]):
+    def __init__(self, boosters: dict[int, lgb.Booster], feature_columns: list[str] | None = None):
         self.model_strings = {h: b.model_to_string(num_iteration=b.best_iteration)
                               for h, b in boosters.items()}
-        self.feature_columns = list(FEATURE_COLUMNS)
+        # Inference reads this to know which Feast features to fetch.
+        self.feature_columns = list(feature_columns or FEATURE_COLUMNS)
         self._boosters = None
 
     def _load(self):

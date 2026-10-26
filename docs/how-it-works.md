@@ -88,5 +88,6 @@ Feature, training and inference pipelines (FTI) are connected **only** through t
 
 - **Travel time** Yarrawonga → Barmah: ~**4 days** (correlation peak), with a plateau to ~10 days.
 - **Persistence baseline** ("tomorrow = today"), average error: **3.3 cm** at 1 day ahead, rising to **18.9 cm** at 7 days. The model must beat this.
+- **Weather didn't help** (5.39 vs 5.30 cm): Barmah is regulated, and upstream rain is already in the Yarrawonga gauge.
 - **Champion v1 (river-only):** 1.1 cm (h1) → 9.9 cm (h7) average error, 51–68% better than persistence.
 - **History:** Barmah from 1974, Yarrawonga from 1970; 17,325 usable feature rows.

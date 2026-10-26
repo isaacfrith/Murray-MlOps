@@ -16,6 +16,7 @@ from pyiceberg.types import (
 
 NAMESPACE = "raw"
 GAUGE_DAILY = f"{NAMESPACE}.gauge_daily"
+WEATHER_DAILY = f"{NAMESPACE}.weather_daily"
 
 GAUGE_DAILY_SCHEMA = Schema(
     NestedField(1, "site_id", StringType(), required=True, doc="Gauge number, e.g. 409215"),
@@ -39,5 +40,31 @@ def append_gauge_daily(table: Table, rows: pd.DataFrame) -> int:
     if rows.empty:
         return 0
     arrow = pa.Table.from_pandas(rows, schema=table.schema().as_arrow(), preserve_index=False)
+    table.append(arrow)
+    return arrow.num_rows
+
+
+WEATHER_DAILY_SCHEMA = Schema(
+    NestedField(1, "location", StringType(), required=True, doc="barmah, yarrawonga, ..."),
+    NestedField(2, "obs_date", DateType(), required=True, doc="Melbourne local calendar day"),
+    NestedField(3, "precipitation_sum", DoubleType(), required=False, doc="mm"),
+    NestedField(4, "temperature_2m_max", DoubleType(), required=False, doc="°C"),
+    NestedField(5, "et0_fao_evapotranspiration", DoubleType(), required=False, doc="mm"),
+    NestedField(6, "wind_speed_10m_max", DoubleType(), required=False, doc="km/h"),
+    NestedField(7, "ingested_at", TimestamptzType(), required=True, doc="When we fetched it (UTC)"),
+)
+
+
+def weather_daily_table(catalog: Catalog) -> Table:
+    catalog.create_namespace_if_not_exists(NAMESPACE)
+    return catalog.create_table_if_not_exists(WEATHER_DAILY, schema=WEATHER_DAILY_SCHEMA)
+
+
+def append_rows(table: Table, rows: pd.DataFrame) -> int:
+    """Append-only write for any raw table. Returns the number of rows written."""
+    if rows.empty:
+        return 0
+    arrow = pa.Table.from_pandas(rows[table.schema().column_names],
+                                 schema=table.schema().as_arrow(), preserve_index=False)
     table.append(arrow)
     return arrow.num_rows

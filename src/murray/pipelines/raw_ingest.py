@@ -7,9 +7,17 @@ import datetime as dt
 import logging
 from zoneinfo import ZoneInfo
 
+import pandas as pd
+
 from murray.io.catalog import get_catalog
 from murray.io.gauges import GAUGES, VARIABLES, fetch_daily
-from murray.io.raw_tables import append_gauge_daily, gauge_daily_table
+from murray.io.raw_tables import (
+    append_gauge_daily,
+    append_rows,
+    gauge_daily_table,
+    weather_daily_table,
+)
+from murray.io.weather import fetch_daily as fetch_weather
 from murray.transforms.raw import only_completed_days, stamp
 
 log = logging.getLogger(__name__)
@@ -52,4 +60,30 @@ def backfill(site_id: str, var: str = "L", force: bool = False) -> int:
     return ingest(site_id, HISTORY_START, dt.date.today(), var)
 
 
-__all__ = ["GAUGES", "backfill", "ingest", "ingest_recent"]
+def ingest_weather(start: dt.date, end: dt.date, now: dt.datetime | None = None) -> int:
+    """Weather for all locations, start..end (only completed local days), append-only."""
+    now = now or dt.datetime.now(dt.timezone.utc)
+    today_local = now.astimezone(LOCAL_TZ).date()
+    rows = only_completed_days(fetch_weather(start, min(end, today_local)), today_local)
+    rows = rows.copy()
+    rows["ingested_at"] = pd.Timestamp(now).tz_convert("UTC")
+    written = append_rows(weather_daily_table(get_catalog()), rows)
+    log.info("weather: wrote %d rows", written)
+    return written
+
+
+def weather_backfill(force: bool = False) -> int:
+    table = weather_daily_table(get_catalog())
+    if table.scan(selected_fields=("location",), limit=1).to_arrow().num_rows and not force:
+        log.info("weather already has history; skipping backfill")
+        return 0
+    return ingest_weather(HISTORY_START, dt.date.today())
+
+
+def weather_ingest_recent(days: int = 14) -> int:
+    today_local = dt.datetime.now(LOCAL_TZ).date()
+    return ingest_weather(today_local - dt.timedelta(days=days), today_local)
+
+
+__all__ = ["GAUGES", "backfill", "ingest", "ingest_recent", "weather_backfill",
+           "weather_ingest_recent"]

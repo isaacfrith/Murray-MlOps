@@ -40,6 +40,7 @@ x-airflow-common: &airflow-common
     S3_REGION: ${S3_REGION:-us-east-1}
     VALKEY_PASSWORD: ${VALKEY_PASSWORD:?set in .env}
     FEAST_REPO_PATH: /opt/murray/features
+    MLFLOW_DISABLE_AGENT_HINT: "1"
   volumes:
     - ../pipelines:/opt/airflow/dags:ro          # DAG files: edit on the laptop, picked up live
     - ../features:/opt/murray/features:ro        # Feast repo (feature_store.yaml, definitions.py)

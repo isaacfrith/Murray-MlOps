@@ -8,6 +8,7 @@ from feast.types import Float64
 from feast.value_type import ValueType
 
 from murray.transforms.features import FEATURE_COLUMNS
+from murray.transforms.weather_features import WEATHER_FEATURE_COLUMNS
 
 site = Entity(
     name="site",
@@ -39,4 +40,28 @@ barmah_daily = FeatureView(
     online=True,
     description="Barmah level history + Yarrawonga upstream lags; row D known at D+1 10:00 Melbourne",
     tags={"team": "murray", "step": "7"},
+)
+
+barmah_weather_source = IcebergSource(
+    name="barmah_weather_iceberg",
+    catalog_type="sql",
+    catalog_name="murray",
+    warehouse="s3://lakehouse/warehouse",
+    namespace="features",
+    table="barmah_weather",
+    timestamp_field="event_timestamp",
+    created_timestamp_column="created_timestamp",
+    credential_vending=False,
+)
+
+barmah_weather = FeatureView(
+    name="barmah_weather",
+    entities=[site],
+    ttl=timedelta(days=2),
+    schema=[Field(name=name, dtype=Float64) for name in WEATHER_FEATURE_COLUMNS],
+    source=barmah_weather_source,
+    online=True,
+    description="Past rainfall (4 points: Barmah, Yarrawonga, Ovens@Wangaratta, Albury), "
+    "Barmah temperature and evaporation; trailing windows ending on day D",
+    tags={"team": "murray", "step": "8b"},
 )
