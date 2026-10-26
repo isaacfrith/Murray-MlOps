@@ -5,3 +5,9 @@ __pycache__/
 
 # Personal trip log (location history) — kept out of the public repo
 data/trips.csv
+
+# Dashboard data is written by the pipelines and published to the `site-data` branch,
+# not committed to main (keeps main's history clean; no conflicts with local runs).
+site/forecast.json
+site/models.json
+site/monitoring.json

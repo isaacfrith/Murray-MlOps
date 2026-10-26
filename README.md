@@ -4,8 +4,11 @@ Forecasts the Murray River's height at Barmah 1–7 days ahead and turns it into
 "good for wakeboarding?" rating. Built with feature / training / inference (FTI)
 pipelines that share only a feature store (Feast) and a model registry (MLflow).
 
-**Dashboard:** `site/` (static HTML + `forecast.json`), deployed to GitHub Pages by
-`.github/workflows/pages.yml`. Publish the latest forecast with `make publish`.
+**Dashboard:** `site/` (static HTML) on `main`; the data (`forecast.json`, `models.json`,
+`monitoring.json`) is published by Airflow after each forecast to the `site-data` branch, and
+`.github/workflows/pages.yml` deploys both to GitHub Pages. Needs `GITHUB_PUBLISH_TOKEN` in `.env`
+(fine-grained, this repo only, Contents + Actions read/write); until then publishing is skipped.
+`make publish` pushes the current data by hand.
 CI (`.github/workflows/ci.yml`) runs the unit tests and a lockfile check on every pull request;
 `make unit` runs the same locally.
 Wakeboarding rule: `src/murray/rules/wakeboarding.yaml` (good 2.30–3.00 m, wind ≤ 23 km/h).

@@ -27,7 +27,5 @@ dag-errors: ## show DAG files Airflow failed to import
 dag-test:  ## run one DAG once, in-process, without the scheduler: make dag-test d=smoke_stack
 	$(COMPOSE) exec airflow-scheduler airflow dags test $(d)
 
-publish:   ## commit the latest site/*.json and push (GitHub Pages redeploys)
-	git add site/forecast.json site/models.json site/monitoring.json
-	git diff --cached --quiet || git commit -m "Publish forecast $$(date +%Y-%m-%d)"
-	git push
+publish:   ## push site/*.json to the site-data branch now (Airflow does this after each forecast)
+	uv run --env-file .env python -c "from murray.io.github_publish import publish; print(publish('site'))"

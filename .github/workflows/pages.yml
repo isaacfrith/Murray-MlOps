@@ -1,11 +1,13 @@
-# Deploy site/ (index.html + forecast.json) to GitHub Pages on every push to main that
-# touches it. One-time setup: repo Settings → Pages → Source: "GitHub Actions".
+# Deploy the dashboard to GitHub Pages: HTML/CSS from main's site/, data (JSON) from the
+# `site-data` branch, which the Airflow publish task updates after every forecast.
+# Runs on pushes to main that touch site/, and when the publish task requests it (dispatch).
+# One-time setup: repo Settings → Pages → Source: "GitHub Actions".
 name: Deploy dashboard
 
 on:
   push:
     branches: [main]
-    paths: ["site/**"]
+    paths: ["site/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -25,6 +27,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Fetch published data (site-data branch)
+        run: |
+          git fetch --depth=1 origin site-data
+          git --work-tree=site checkout FETCH_HEAD -- forecast.json models.json monitoring.json
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -2,13 +2,14 @@
 
 Runs whenever fresh features are online (BARMAH_FEATURES asset, set by features_barmah after
 materialising to Valkey). Writes predictions.barmah_forecast (Iceberg, for monitoring) and
-site/forecast.json (the dashboard). Publishing the site is a separate, deliberate step:
-`make publish` commits forecast.json and pushes, and GitHub Pages redeploys.
+site/*.json, then publishes the JSON to the `site-data` branch on GitHub, which redeploys
+GitHub Pages. Publishing only happens after a successful forecast, and is skipped (not failed)
+until GITHUB_PUBLISH_TOKEN is set.
 """
 
 from datetime import datetime, timedelta
 
-from airflow.sdk import Asset, dag, task
+from airflow.sdk import Asset, chain, dag, task
 
 MURRAY_PYTHON = "/opt/murray/.venv/bin/python"
 BARMAH_FEATURES = Asset("iceberg://lakehouse/features/barmah_daily")
@@ -35,7 +36,17 @@ def inference_barmah():
         logging.basicConfig(level=logging.INFO, force=True)
         return run()
 
-    forecast()
+    @task.external_python(python=MURRAY_PYTHON)
+    def publish() -> str:
+        import logging
+        import os
+
+        from murray.io.github_publish import publish
+
+        logging.basicConfig(level=logging.INFO, force=True)
+        return publish(os.environ["SITE_DIR"])
+
+    chain(forecast(), publish())
 
 
 inference_barmah()
