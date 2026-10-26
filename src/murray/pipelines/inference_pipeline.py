@@ -19,6 +19,7 @@ from murray.io.feature_store import get_store
 from murray.io.prediction_tables import append_forecast, barmah_forecast_table
 from murray.io.registry import configure
 from murray.io.weather import fetch_forecast
+from murray.models.explain import local_explanation
 from murray.pipelines.training_pipeline import CHAMPION, MODEL_NAME
 from murray.rules.wakeboarding import NO_FORECAST, load_rule, rate_day
 from murray.transforms.features import BARMAH, FEATURE_COLUMNS
@@ -87,6 +88,9 @@ def run(now: dt.datetime | None = None, site_dir: str | Path | None = None) -> d
             days.append({"date": target.isoformat(), "horizon": h, "level_m": round(level, 3),
                          "wind_kmh": w, "rating": r.rating, "reasons": r.reasons})
             prev = level
+        explanations = local_explanation(model.unwrap_python_model(), features, obs_date)
+        for day, ex in zip(days, explanations):
+            day["explanation"] = ex
         out.update(status="ok", observed_date=obs_date.isoformat(),
                    observed_level_m=round(current, 3), days=days,
                    history=_recent_history(obs_date))
@@ -102,5 +106,9 @@ def run(now: dt.datetime | None = None, site_dir: str | Path | None = None) -> d
     site = Path(site_dir or os.environ.get("SITE_DIR") or DEFAULT_SITE_DIR)
     site.mkdir(parents=True, exist_ok=True)
     (site / "forecast.json").write_text(json.dumps(out, indent=2) + "\n")
+
+    from murray.pipelines.export_site import export_models_json
+
+    export_models_json(client, site)
     return {"status": out["status"], "observed_date": out.get("observed_date"),
             "model_version": version}

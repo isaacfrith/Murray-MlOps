@@ -8,6 +8,14 @@ pipelines that share only a feature store (Feast) and a model registry (MLflow).
 `.github/workflows/pages.yml`. Publish the latest forecast with `make publish`.
 Wakeboarding rule: `src/murray/rules/wakeboarding.yaml` (good 2.30–3.00 m, wind ≤ 23 km/h).
 
+**Model page:** `site/model.html` explains the champion: SHAP "why this forecast" per day,
+what the model relies on, the Yarrawonga upstream effect, a 2022–2026 backtest, and the full MLflow
+registry history with every promotion decision. Exported to `site/models.json` on every inference run.
+
+| MLflow training runs | MLflow model registry (`@champion`) |
+|---|---|
+| ![MLflow runs](docs/img/mlflow-runs.png) | ![MLflow registry](docs/img/mlflow-registry.png) |
+
 **How it works (one page):** [docs/how-it-works.md](docs/how-it-works.md)
 
 ## Local stack

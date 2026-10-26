@@ -69,6 +69,20 @@ class BarmahForecaster(mlflow.pyfunc.PythonModel):
         state["_boosters"] = None
         return state
 
+    def contributions(self, model_input: pd.DataFrame) -> dict[int, pd.DataFrame]:
+        """Exact TreeSHAP per horizon, in metres of predicted CHANGE.
+
+        Columns: one per feature plus "_base" (the model's average predicted change). For each
+        row, the columns sum to that horizon's predicted change from today's level.
+        """
+        x = model_input[self.feature_columns].astype("float64")
+        out = {}
+        for h, b in sorted(self._load().items()):
+            contrib = b.predict(x, pred_contrib=True)
+            out[h] = pd.DataFrame(contrib, columns=[*self.feature_columns, "_base"],
+                                  index=model_input.index)
+        return out
+
     def predict(self, context, model_input: pd.DataFrame, params=None) -> pd.DataFrame:
         x = model_input[self.feature_columns].astype("float64")
         current = model_input["barmah_level_m"].to_numpy(dtype="float64")

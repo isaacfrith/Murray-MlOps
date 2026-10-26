@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Barmah Model Explained</title>
+<meta name="description" content="How the Barmah river level forecast works: SHAP explanations, backtest and MLflow model history.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <nav><a href="index.html">Forecast</a><a href="model.html" aria-current="page">How the model works</a></nav>
+  <h1>How the model works</h1>
+  <p class="sub" id="intro">Loading…</p>
+
+  <section id="why">
+    <h2>Why this forecast</h2>
+    <p class="note">Each bar is how much a group of inputs pushed the forecast up or down, in centimetres,
+      starting from today's level. Computed with exact TreeSHAP from the model itself.</p>
+    <div class="picker" id="day-picker"></div>
+    <div class="chart"><svg id="waterfall" viewBox="0 0 900 260" role="img" aria-label="Forecast explanation waterfall"></svg></div>
+    <div id="captions"></div>
+    <button class="toggle" id="feat-toggle" aria-expanded="false">Show all inputs</button>
+    <div class="scroll" id="feat-detail" hidden></div>
+  </section>
+
+  <section>
+    <h2>What the model relies on</h2>
+    <p class="note">Average size of each group's push across the whole test period (2022 onwards), in cm.
+      Further ahead, upstream water at Yarrawonga matters more: it takes about 4 days to arrive.</p>
+    <div class="picker" id="imp-picker"></div>
+    <div class="chart"><svg id="importance" viewBox="0 0 900 220" role="img" aria-label="Global importance"></svg></div>
+    <button class="toggle" id="imp-toggle" aria-expanded="false">Show top individual inputs</button>
+    <div class="chart" id="imp-detail-box" hidden><svg id="imp-detail" viewBox="0 0 900 420" role="img" aria-label="Top inputs"></svg></div>
+  </section>
+
+  <section>
+    <h2>Upstream effect: Yarrawonga's last 7 days</h2>
+    <p class="note">Each dot is one test-period day. Across: how much Yarrawonga changed in the previous week.
+      Up: how much that pushed Barmah's 4-days-ahead forecast. The dashed line is today.</p>
+    <div class="chart"><svg id="effect" viewBox="0 0 900 320" role="img" aria-label="Effect of Yarrawonga change"></svg></div>
+  </section>
+
+  <section>
+    <h2>Backtest: forecast vs what happened</h2>
+    <p class="note" id="bt-note"></p>
+    <div class="picker" id="bt-picker"></div>
+    <div class="chart"><svg id="backtest" viewBox="0 0 900 320" role="img" aria-label="Backtest"></svg>
+      <div class="legend"><span style="background:var(--river)"></span>actual
+        <span style="background:var(--forecast)"></span>model
+        <span style="background:var(--muted)"></span>persistence ("no change")</div>
+    </div>
+    <h3 class="note">Average error (cm) by days ahead</h3>
+    <div class="scroll" id="scores"></div>
+  </section>
+
+  <section>
+    <h2>Model history (MLflow registry)</h2>
+    <p class="note">Every trained version. A new version becomes champion only if it beats both the
+      "no change" baseline and the current champion on the same test period. Ties don't count.</p>
+    <div class="scroll" id="history"></div>
+  </section>
+
+  <section>
+    <h2>Limits</h2>
+    <ul class="limits">
+      <li>These explanations describe <strong>the model</strong>, not the river's physics. A large push from an
+        input means the model leans on it, not that it causes the change.</li>
+      <li>Related inputs (for example, Yarrawonga's level on consecutive days) <strong>share credit</strong>; that's why
+        inputs are shown in groups.</li>
+      <li>The backtest uses <strong>corrected</strong> historical readings. Live forecasts use provisional data, so
+        real-world accuracy will be somewhat worse; forecast-vs-actual monitoring will measure it.</li>
+      <li>The river is regulated: an unannounced change in dam releases can't be predicted from past data.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <p>Built with Iceberg, Feast, MLflow, LightGBM and Airflow. Data: State of Victoria (DEECA), WaterNSW
+      (CC BY 4.0) via <a href="https://riverdata.mdba.gov.au/">MDBA River Murray Data</a> sources;
+      <a href="https://open-meteo.com/">Weather data by Open-Meteo.com</a> (CC BY 4.0).</p>
+    <p id="meta"></p>
+  </footer>
+</main>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const GROUP_ORDER = ["Current level", "Barmah trend", "Upstream: Yarrawonga", "Season", "Weather"];
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmtDay = iso => new Date(iso + "T00:00:00").toLocaleDateString("en-AU",
+  { weekday: "short", day: "numeric", month: "short" });
+const fmtMonth = iso => new Date(iso + "T00:00:00").toLocaleDateString("en-AU", { month: "short", year: "numeric" });
+const sign = v => (v > 0 ? "+" : "") + v.toFixed(1);
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function svgReset(svg) { while (svg.firstChild) svg.firstChild.remove(); }
+function add(svg, tag, attrs, text) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (text !== undefined) e.textContent = text;
+  svg.append(e);
+  return e;
+}
+function picker(id, options, initial, onPick) {
+  const box = document.getElementById(id);
+  box.innerHTML = "";
+  const buttons = options.map(([value, label]) => {
+    const b = el("button", null, label);
+    b.type = "button";
+    b.onclick = () => { buttons.forEach(x => x.setAttribute("aria-pressed", String(x === b))); onPick(value); };
+    box.append(b);
+    return b;
+  });
+  const start = buttons[Math.max(0, options.findIndex(o => o[0] === initial))];
+  start.click();
+}
+function table(rows, head) {
+  const t = el("table"), tr = el("tr");
+  head.forEach(h => tr.append(el("th", null, h)));
+  t.append(tr);
+  rows.forEach(r => {
+    const row = el("tr", r.cls);
+    r.cells.forEach(c => row.append(el("td", null, c)));
+    t.append(row);
+  });
+  return t;
+}
+
+/* Horizontal bars, positive/negative around zero (waterfall when cumulative). */
+function hbars(svg, items, { cumulative = false, labelW = 210 } = {}) {
+  svgReset(svg);
+  const vb = svg.viewBox.baseVal, W = vb.width, rowH = 30, T = 8, B = 26;
+  const H = T + B + rowH * items.length;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  let run = 0;
+  const spans = items.map(it => {
+    if (it.total) return [0, it.value];
+    const a = cumulative ? run : 0, b = a + it.value;
+    if (cumulative) run = b;
+    return [a, b];
+  });
+  const ends = spans.flat().concat(0);
+  let lo = Math.min(...ends), hi = Math.max(...ends);
+  const pad = Math.max(0.5, (hi - lo) * 0.15); lo -= pad; hi += pad;
+  const L = labelW, R = 60, x = v => L + (W - L - R) * (v - lo) / (hi - lo);
+  add(svg, "line", { x1: x(0), x2: x(0), y1: T, y2: H - B, stroke: css("--muted"), "stroke-width": 1 });
+  items.forEach((it, i) => {
+    const [a, b] = spans[i], y = T + i * rowH;
+    const color = it.total ? css("--river") : (it.value >= 0 ? css("--good") : css("--nogo"));
+    add(svg, "text", { x: L - 10, y: y + 19, "text-anchor": "end", "font-size": 14, fill: css("--text") }, it.label);
+    add(svg, "rect", { x: Math.min(x(a), x(b)), y: y + 5, width: Math.max(2, Math.abs(x(b) - x(a))),
+                       height: rowH - 10, rx: 3, fill: color, opacity: it.total ? 0.9 : 0.75 });
+    add(svg, "text", { x: Math.max(x(a), x(b)) + 6, y: y + 19, "font-size": 13, fill: css("--muted") },
+        (it.unsigned ? it.value.toFixed(1) : sign(it.value)) + " cm");
+  });
+  add(svg, "text", { x: x(0), y: H - 6, "text-anchor": "middle", "font-size": 12, fill: css("--muted") },
+      cumulative ? "change from today's level (cm)" : "0");
+}
+
+/* Line chart over dates. series: [{values, color, width, dash}] */
+function lines(svg, dates, series, { yLabel = "m" } = {}) {
+  svgReset(svg);
+  const W = 900, H = 320, L = 52, R = 12, T = 12, B = 30;
+  const all = series.flatMap(s => s.values).filter(v => v != null);
+  const lo = Math.floor((Math.min(...all) - 0.1) * 10) / 10, hi = Math.ceil((Math.max(...all) + 0.1) * 10) / 10;
+  const x = i => L + (W - L - R) * i / Math.max(1, dates.length - 1);
+  const y = v => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+  const step = (hi - lo) > 3 ? 1 : (hi - lo) > 1.5 ? 0.5 : 0.2;
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) {
+    add(svg, "line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: css("--line") });
+    add(svg, "text", { x: L - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 12, fill: css("--muted") }, v.toFixed(1));
+  }
+  add(svg, "text", { x: 4, y: T + 10, "font-size": 12, fill: css("--muted") }, yLabel);
+  for (const s of series) {
+    add(svg, "polyline", { points: s.values.map((v, i) => `${x(i)},${y(v)}`).join(" "), fill: "none",
+      stroke: s.color, "stroke-width": s.width || 1.5, "stroke-dasharray": s.dash || "", opacity: s.opacity || 1 });
+  }
+  const ticks = 5;
+  for (let k = 0; k <= ticks; k++) {
+    const i = Math.round((dates.length - 1) * k / ticks);
+    add(svg, "text", { x: x(i), y: H - 8, "font-size": 12, fill: css("--muted"),
+      "text-anchor": k === 0 ? "start" : k === ticks ? "end" : "middle" }, fmtMonth(dates[i]));
+  }
+}
+
+function scatter(svg, points, todayX) {
+  svgReset(svg);
+  const W = 900, H = 320, L = 52, R = 12, T = 28, B = 44;
+  const xs = points.map(p => p[0]).concat(todayX ?? []), ys = points.map(p => p[1]);
+  const xlo = Math.min(...xs), xhi = Math.max(...xs), ylo = Math.min(...ys, 0), yhi = Math.max(...ys, 0);
+  const x = v => L + (W - L - R) * (v - xlo) / (xhi - xlo || 1);
+  const y = v => T + (H - T - B) * (1 - (v - ylo) / (yhi - ylo || 1));
+  add(svg, "line", { x1: L, x2: W - R, y1: y(0), y2: y(0), stroke: css("--line") });
+  add(svg, "line", { x1: x(0), x2: x(0), y1: T, y2: H - B, stroke: css("--line") });
+  for (const [px, py] of points) add(svg, "circle", { cx: x(px), cy: y(py), r: 2.2, fill: css("--river"), opacity: 0.35 });
+  if (todayX != null) {
+    add(svg, "line", { x1: x(todayX), x2: x(todayX), y1: T, y2: H - B, stroke: css("--forecast"),
+                       "stroke-width": 2, "stroke-dasharray": "6 4" });
+    add(svg, "text", { x: x(todayX) + 6, y: T + 14, "font-size": 12, fill: css("--forecast") },
+        `today: ${sign(todayX)} cm`);
+  }
+  add(svg, "text", { x: (L + W) / 2, y: H - 6, "text-anchor": "middle", "font-size": 12, fill: css("--muted") },
+      "Yarrawonga change over the previous 7 days (cm)");
+  add(svg, "text", { x: 4, y: 14, "font-size": 12, fill: css("--muted") }, "push on Barmah's 4-day forecast (cm)");
+  [[xlo, "start"], [0, "middle"], [xhi, "end"]].forEach(([v, anchor]) =>
+    add(svg, "text", { x: x(v), y: H - 26, "text-anchor": anchor, "font-size": 11, fill: css("--muted") }, Math.round(v)));
+  for (const v of [ylo, 0, yhi]) add(svg, "text", { x: L - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 11,
+                                                     fill: css("--muted") }, v.toFixed(0));
+}
+
+function renderWhy(forecast, date) {
+  const day = forecast.days.find(d => d.date === date) || forecast.days[0];
+  const ex = day.explanation;
+  const items = [{ label: "Typical change", value: ex.base_cm }];
+  for (const g of GROUP_ORDER) if (g in ex.groups_cm) items.push({ label: g, value: ex.groups_cm[g] });
+  const total = Math.round((ex.forecast_m - ex.current_m) * 1000) / 10;
+  items.push({ label: "Forecast change", value: total, total: true });
+  hbars(document.getElementById("waterfall"), items, { cumulative: true });
+
+  const cap = document.getElementById("captions");
+  cap.innerHTML = "";
+  cap.append(el("p", "caption", `${fmtDay(day.date)}: today ${ex.current_m.toFixed(2)} m → forecast ` +
+    `${ex.forecast_m.toFixed(2)} m (${sign(total)} cm), rated ${day.rating}.`));
+  ex.captions.forEach(c => cap.append(el("p", "caption note", c)));
+
+  const detail = document.getElementById("feat-detail");
+  detail.innerHTML = "";
+  detail.append(table(Object.entries(ex.features_cm).map(([k, v]) => ({ cells: [k, sign(v) + " cm"] })),
+                      ["Input", "Push"]));
+}
+
+function renderImportance(card, h) {
+  const imp = card.importance[String(h)];
+  hbars(document.getElementById("importance"),
+        GROUP_ORDER.filter(g => g in imp.groups).map(g => ({ label: g, value: imp.groups[g], unsigned: true })));
+  const top = Object.entries(imp.features).slice(0, 12).map(([k, v]) => ({ label: k, value: v, unsigned: true }));
+  hbars(document.getElementById("imp-detail"), top);
+}
+
+function renderBacktest(card, h) {
+  const bt = card.backtest[String(h)];
+  lines(document.getElementById("backtest"), bt.dates, [
+    { values: bt.persistence, color: css("--muted"), width: 1, opacity: 0.6 },
+    { values: bt.actual, color: css("--river"), width: 1.6 },
+    { values: bt.predicted, color: css("--forecast"), width: 1.3, opacity: 0.9 },
+  ]);
+  const all = card.scores_cm.find(s => s.regime === "all" && s.forecaster === "model");
+  const base = card.scores_cm.find(s => s.regime === "all" && s.forecaster === "persistence");
+  document.getElementById("bt-note").textContent =
+    `Test period ${card.test_start} to ${card.test_end}, never seen in training. ` +
+    `${h} day${h > 1 ? "s" : ""} ahead the model's average error is ${all.mae[h - 1].toFixed(1)} cm, ` +
+    `vs ${base.mae[h - 1].toFixed(1)} cm for "no change".`;
+}
+
+function toggle(btnId, boxId, onLabel, offLabel) {
+  const b = document.getElementById(btnId), box = document.getElementById(boxId);
+  b.onclick = () => {
+    box.hidden = !box.hidden;
+    b.setAttribute("aria-expanded", String(!box.hidden));
+    b.textContent = box.hidden ? onLabel : offLabel;
+  };
+}
+
+Promise.all([
+  fetch("forecast.json", { cache: "no-store" }).then(r => r.json()),
+  fetch("models.json", { cache: "no-store" }).then(r => r.json()),
+]).then(([forecast, models]) => {
+  const card = models.champion_card;
+  const champ = models.history.find(v => v.champion);
+  document.getElementById("intro").textContent =
+    `Champion: version ${champ.version} (${champ.feature_set.replace("_", " ")}, ${card.n_features} inputs). ` +
+    `Seven LightGBM models, one per day ahead, each predicting the change from today's level.`;
+
+  if (forecast.status === "ok") {
+    const fromHash = (location.hash.match(/day=([\d-]+)/) || [])[1];
+    const initial = fromHash || (forecast.days[1] || forecast.days[0]).date;
+    picker("day-picker", forecast.days.map(d => [d.date, fmtDay(d.date)]), initial, d => renderWhy(forecast, d));
+    if (fromHash) document.getElementById("why").scrollIntoView();
+  } else {
+    document.getElementById("captions").textContent = "No forecast right now: " + (forecast.reason || "");
+  }
+  toggle("feat-toggle", "feat-detail", "Show all inputs", "Hide inputs");
+  toggle("imp-toggle", "imp-detail-box", "Show top individual inputs", "Hide individual inputs");
+
+  picker("imp-picker", [1, 2, 3, 4, 5, 6, 7].map(h => [h, h === 1 ? "1 day" : h + " days"]), 4,
+         h => renderImportance(card, h));
+
+  const todayEx = forecast.status === "ok" ? forecast.days.find(d => d.horizon === card.effect.horizon) : null;
+  const todayX = todayEx?.explanation?.inputs?.yarra_change_7d;
+  scatter(document.getElementById("effect"), card.effect.points, todayX == null ? null : todayX * 100);
+
+  picker("bt-picker", [1, 4, 7].map(h => [h, h === 1 ? "1 day ahead" : h + " days ahead"]), 7,
+         h => renderBacktest(card, h));
+
+  const label = { all: "All days", steady: "Steady", release_change: "Release change" };
+  document.getElementById("scores").append(table(card.scores_cm.map(s => ({
+    cells: [label[s.regime] || s.regime, s.forecaster === "model" ? "Model" : "No change", s.n, ...s.mae.map(v => v.toFixed(1))],
+  })), ["Days", "Forecaster", "n", "1", "2", "3", "4", "5", "6", "7"]));
+
+  document.getElementById("history").append(table(models.history.map(v => ({
+    cls: v.champion ? "champion" : "",
+    cells: ["v" + v.version + (v.champion ? " ★" : ""), new Date(v.created).toLocaleDateString("en-AU"),
+            v.feature_set.replace("_", " "), v.mae_mean_cm.toFixed(2), v.persistence_mean_cm.toFixed(2),
+            // Tags store metres; show cm like the rest of the page.
+            v.promotion.replace(/(\d+\.\d+) m/g, (m, n) => (parseFloat(n) * 100).toFixed(2) + " cm")],
+  })), ["Version", "Trained", "Inputs", "Error (cm)", "No change (cm)", "Decision"]));
+
+  document.getElementById("meta").textContent =
+    `Exported ${new Date(models.exported_at).toLocaleString("en-AU")} from the MLflow registry ` +
+    `(${models.model_name}).`;
+}).catch(e => {
+  document.getElementById("intro").textContent = "Could not load model data: " + e;
+});
+</script>
+</body>
+</html>
