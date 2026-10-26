@@ -11,11 +11,14 @@ Daily means change once a day, so a daily schedule is enough (not 6-hourly).
 from datetime import datetime, timedelta
 
 import pendulum
-from airflow.sdk import chain, dag, task
+from airflow.sdk import Asset, chain, dag, task
 
 MURRAY_PYTHON = "/opt/murray/.venv/bin/python"
 GAUGES = ["409215", "409025"]  # Barmah, Yarrawonga Weir downstream
 MELBOURNE = pendulum.timezone("Australia/Melbourne")
+
+# Downstream DAGs (features) are scheduled on this asset, not on a clock.
+RAW_GAUGE_DAILY = Asset("iceberg://lakehouse/raw/gauge_daily")
 
 
 @dag(
@@ -40,7 +43,12 @@ def raw_gauges_backfill():
         return backfill(site_id, var="L")
 
     # Sequential, not parallel: be gentle with the agencies' free services.
-    chain(*[backfill_gauge.override(task_id=f"backfill_{g}")(g) for g in GAUGES])
+    chain(*[
+        backfill_gauge.override(
+            task_id=f"backfill_{g}", outlets=[RAW_GAUGE_DAILY] if g == GAUGES[-1] else []
+        )(g)
+        for g in GAUGES
+    ])
 
 
 @dag(
@@ -64,7 +72,13 @@ def raw_gauges_daily():
         logging.basicConfig(level=logging.INFO, force=True)  # gauge-getter configures logging on import
         return ingest_recent(site_id, days=14, var="L")
 
-    chain(*[ingest_recent_gauge.override(task_id=f"ingest_{g}")(g) for g in GAUGES])
+    # The last task marks the asset as updated, i.e. only once every gauge is in.
+    chain(*[
+        ingest_recent_gauge.override(
+            task_id=f"ingest_{g}", outlets=[RAW_GAUGE_DAILY] if g == GAUGES[-1] else []
+        )(g)
+        for g in GAUGES
+    ])
 
 
 raw_gauges_backfill()

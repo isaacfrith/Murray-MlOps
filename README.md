@@ -28,6 +28,16 @@ run `make up` to rebuild the image. Check DAGs with `make dag-errors` and `make 
 Other shortcuts: `make ps`, `make logs s=airflow-scheduler`, `make down`.
 Reset everything (re-runs the Postgres init script): `docker compose --env-file .env -f infra/docker-compose.yml down -v`
 
+## Pipelines (so far)
+
+```
+raw_gauges_daily (10:00 Melbourne)          → raw.gauge_daily        (Iceberg, append-only)
+   └─ asset update ─▶ features_barmah        → features.barmah_daily  (Iceberg, offline store)
+                                               └─ feast materialize   → Valkey (online store)
+```
+
+Feast repo: `features/` (`feature_store.yaml`, `definitions.py`); registry in `s3://lakehouse/feast/registry.pb`.
+
 Notebooks: `02_iceberg_sandbox` (Iceberg internals), `03_mlflow_tour` (MLflow storage, aliases, hostnames).
 
 ## Data and attribution
