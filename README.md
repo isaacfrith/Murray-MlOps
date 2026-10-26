@@ -32,6 +32,11 @@ Notebooks: `02_iceberg_sandbox` (Iceberg internals), `03_mlflow_tour` (MLflow st
 
 ## Data and attribution
 
-River data: © Commonwealth of Australia, Bureau of Meteorology (CC BY 4.0).
+River data: the state water agencies behind [MDBA River Murray Data](https://riverdata.mdba.gov.au/),
+fetched with MDBA's [gauge-getter](https://github.com/MDBAuth/MDBA_Gauge_Getter):
+- Murray River at Barmah (409215): © State of Victoria, Department of Energy, Environment and Climate Action
+  ([Water Measurement Information System](https://data.water.vic.gov.au/)), CC BY 4.0.
+- Murray River at Yarrawonga Weir (409025): © State Government of NSW and WaterNSW
+  ([Real Time Water](https://realtimedata.waternsw.com.au/)), CC BY 4.0.
 Weather data: [Open-Meteo](https://open-meteo.com/) (CC BY 4.0).
 This is a planning aid, not a safety tool.
