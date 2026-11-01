@@ -1,6 +1,6 @@
 {
   "site": "Murray River at Barmah (409215)",
-  "issued_at": "2026-11-01T00:09:45.881534+00:00",
+  "issued_at": "2026-11-01T01:10:38.347624+00:00",
   "model_version": "1",
   "rule_version": 1,
   "status": "ok",
@@ -75,7 +75,7 @@
       "date": "2026-11-02",
       "horizon": 2,
       "level_m": 2.709,
-      "wind_kmh": 19.6,
+      "wind_kmh": 20.0,
       "rating": "good",
       "reasons": [
         "level 2.71 m in good range",
@@ -139,7 +139,7 @@
       "date": "2026-11-03",
       "horizon": 3,
       "level_m": 2.704,
-      "wind_kmh": 19.1,
+      "wind_kmh": 19.0,
       "rating": "good",
       "reasons": [
         "level 2.70 m in good range",
@@ -203,11 +203,11 @@
       "date": "2026-11-04",
       "horizon": 4,
       "level_m": 2.706,
-      "wind_kmh": 27.4,
+      "wind_kmh": 28.1,
       "rating": "marginal",
       "reasons": [
         "level 2.71 m in good range",
-        "breezy 27 km/h"
+        "breezy 28 km/h"
       ],
       "explanation": {
         "date": "2026-11-04",
@@ -331,11 +331,11 @@
       "date": "2026-11-06",
       "horizon": 6,
       "level_m": 2.698,
-      "wind_kmh": 12.5,
+      "wind_kmh": 14.2,
       "rating": "good",
       "reasons": [
         "level 2.70 m in good range",
-        "wind 12 km/h"
+        "wind 14 km/h"
       ],
       "explanation": {
         "date": "2026-11-06",
@@ -607,7 +607,7 @@
         "q10_m": 2.712,
         "q90_m": 2.738,
         "p_good_level": 1.0,
-        "wind_kmh": 19.6,
+        "wind_kmh": 20.0,
         "rating": "good",
         "reasons": [
           "level 2.73 m in good range",
@@ -621,7 +621,7 @@
         "q10_m": 2.707,
         "q90_m": 2.741,
         "p_good_level": 1.0,
-        "wind_kmh": 19.1,
+        "wind_kmh": 19.0,
         "rating": "good",
         "reasons": [
           "level 2.72 m in good range",
@@ -635,11 +635,11 @@
         "q10_m": 2.702,
         "q90_m": 2.746,
         "p_good_level": 1.0,
-        "wind_kmh": 27.4,
+        "wind_kmh": 28.1,
         "rating": "marginal",
         "reasons": [
           "level 2.72 m in good range",
-          "breezy 27 km/h"
+          "breezy 28 km/h"
         ]
       },
       {
@@ -663,11 +663,11 @@
         "q10_m": 2.69,
         "q90_m": 2.752,
         "p_good_level": 1.0,
-        "wind_kmh": 12.5,
+        "wind_kmh": 14.2,
         "rating": "good",
         "reasons": [
           "level 2.72 m in good range",
-          "wind 12 km/h"
+          "wind 14 km/h"
         ]
       },
       {
