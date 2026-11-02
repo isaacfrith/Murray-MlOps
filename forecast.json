@@ -1,6 +1,6 @@
 {
   "site": "Murray River at Barmah (409215)",
-  "issued_at": "2026-11-01T23:01:04.187812+00:00",
+  "issued_at": "2026-11-02T23:40:45.205358+00:00",
   "model_version": "1",
   "rule_version": 1,
   "status": "ok",
@@ -11,11 +11,11 @@
       "date": "2026-11-02",
       "horizon": 1,
       "level_m": 2.715,
-      "wind_kmh": 21.8,
+      "wind_kmh": 20.1,
       "rating": "good",
       "reasons": [
         "level 2.71 m in good range",
-        "wind 22 km/h"
+        "wind 20 km/h"
       ],
       "explanation": {
         "date": "2026-11-02",
@@ -75,11 +75,11 @@
       "date": "2026-11-03",
       "horizon": 2,
       "level_m": 2.699,
-      "wind_kmh": 21.5,
+      "wind_kmh": 19.2,
       "rating": "good",
       "reasons": [
         "level 2.70 m in good range",
-        "wind 22 km/h"
+        "wind 19 km/h"
       ],
       "explanation": {
         "date": "2026-11-03",
@@ -139,11 +139,11 @@
       "date": "2026-11-04",
       "horizon": 3,
       "level_m": 2.701,
-      "wind_kmh": 23.4,
-      "rating": "marginal",
+      "wind_kmh": 32.7,
+      "rating": "no-go",
       "reasons": [
         "level 2.70 m in good range",
-        "breezy 23 km/h"
+        "strong wind 33 km/h"
       ],
       "explanation": {
         "date": "2026-11-04",
@@ -267,11 +267,11 @@
       "date": "2026-11-06",
       "horizon": 5,
       "level_m": 2.692,
-      "wind_kmh": 19.9,
+      "wind_kmh": 15.6,
       "rating": "good",
       "reasons": [
         "level 2.69 m in good range",
-        "wind 20 km/h"
+        "wind 16 km/h"
       ],
       "explanation": {
         "date": "2026-11-06",
@@ -331,11 +331,11 @@
       "date": "2026-11-07",
       "horizon": 6,
       "level_m": 2.693,
-      "wind_kmh": 23.8,
+      "wind_kmh": 23.1,
       "rating": "marginal",
       "reasons": [
         "level 2.69 m in good range",
-        "breezy 24 km/h"
+        "breezy 23 km/h"
       ],
       "explanation": {
         "date": "2026-11-07",
@@ -395,11 +395,11 @@
       "date": "2026-11-08",
       "horizon": 7,
       "level_m": 2.689,
-      "wind_kmh": 18.2,
+      "wind_kmh": 16.2,
       "rating": "good",
       "reasons": [
         "level 2.69 m in good range",
-        "wind 18 km/h"
+        "wind 16 km/h"
       ],
       "explanation": {
         "date": "2026-11-08",
@@ -593,11 +593,11 @@
         "q10_m": 2.709,
         "q90_m": 2.725,
         "p_good_level": 1.0,
-        "wind_kmh": 21.8,
+        "wind_kmh": 20.1,
         "rating": "good",
         "reasons": [
           "level 2.72 m in good range",
-          "wind 22 km/h"
+          "wind 20 km/h"
         ]
       },
       {
@@ -607,11 +607,11 @@
         "q10_m": 2.702,
         "q90_m": 2.727,
         "p_good_level": 1.0,
-        "wind_kmh": 21.5,
+        "wind_kmh": 19.2,
         "rating": "good",
         "reasons": [
           "level 2.71 m in good range",
-          "wind 22 km/h"
+          "wind 19 km/h"
         ]
       },
       {
@@ -621,11 +621,11 @@
         "q10_m": 2.695,
         "q90_m": 2.731,
         "p_good_level": 1.0,
-        "wind_kmh": 23.4,
-        "rating": "marginal",
+        "wind_kmh": 32.7,
+        "rating": "no-go",
         "reasons": [
           "level 2.71 m in good range",
-          "breezy 23 km/h"
+          "strong wind 33 km/h"
         ]
       },
       {
@@ -649,11 +649,11 @@
         "q10_m": 2.685,
         "q90_m": 2.738,
         "p_good_level": 1.0,
-        "wind_kmh": 19.9,
+        "wind_kmh": 15.6,
         "rating": "good",
         "reasons": [
           "level 2.71 m in good range",
-          "wind 20 km/h"
+          "wind 16 km/h"
         ]
       },
       {
@@ -663,11 +663,11 @@
         "q10_m": 2.678,
         "q90_m": 2.742,
         "p_good_level": 1.0,
-        "wind_kmh": 23.8,
+        "wind_kmh": 23.1,
         "rating": "marginal",
         "reasons": [
           "level 2.71 m in good range",
-          "breezy 24 km/h"
+          "breezy 23 km/h"
         ]
       },
       {
@@ -677,11 +677,11 @@
         "q10_m": 2.671,
         "q90_m": 2.747,
         "p_good_level": 1.0,
-        "wind_kmh": 18.2,
+        "wind_kmh": 16.2,
         "rating": "good",
         "reasons": [
           "level 2.71 m in good range",
-          "wind 18 km/h"
+          "wind 16 km/h"
         ]
       }
     ]
