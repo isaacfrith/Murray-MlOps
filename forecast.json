@@ -1,465 +1,462 @@
 {
   "site": "Murray River at Barmah (409215)",
-  "issued_at": "2026-11-11T00:25:51.020932+00:00",
+  "issued_at": "2026-11-11T23:00:28.032372+00:00",
   "model_version": "1",
   "rule_version": 1,
   "status": "ok",
-  "observed_date": "2026-11-10",
-  "observed_level_m": 2.682,
+  "observed_date": "2026-11-11",
+  "observed_level_m": 2.68,
   "days": [
     {
-      "date": "2026-11-11",
+      "date": "2026-11-12",
       "horizon": 1,
       "level_m": 2.677,
-      "wind_kmh": 23.8,
-      "rating": "marginal",
+      "wind_kmh": 17.2,
+      "rating": "good",
       "reasons": [
         "level 2.68 m in good range",
-        "breezy 24 km/h"
+        "wind 17 km/h"
       ],
       "explanation": {
-        "date": "2026-11-11",
+        "date": "2026-11-12",
         "horizon": 1,
-        "current_m": 2.682,
+        "current_m": 2.68,
         "base_cm": -0.35,
         "groups_cm": {
-          "Current level": -0.17,
-          "Barmah trend": -0.03,
-          "Upstream: Yarrawonga": 0.04,
-          "Season": 0.0
+          "Current level": -0.16,
+          "Barmah trend": 0.24,
+          "Upstream: Yarrawonga": 0.01,
+          "Season": -0.0
         },
         "features_cm": {
-          "yarra_level_lag2": 0.38,
-          "yarra_level_lag4": -0.37,
+          "yarra_level_lag4": -0.38,
+          "yarra_level_lag2": 0.35,
+          "barmah_change_1d": 0.21,
           "yarra_level_lag5": -0.13,
           "barmah_level_m": -0.13,
-          "yarra_change_7d": 0.12,
-          "barmah_level_lag1": -0.11,
           "yarra_level_lag10": 0.11,
-          "barmah_level_lag7": -0.08,
-          "yarra_level_lag1": 0.07,
-          "barmah_change_1d": 0.05,
-          "yarra_change_3d": -0.05,
-          "yarra_level_lag3": 0.05,
+          "barmah_level_lag1": -0.09,
+          "yarra_change_7d": 0.09,
+          "barmah_change_3d": 0.08,
+          "yarra_change_1d": -0.08,
+          "barmah_level_lag7": -0.07,
+          "yarra_level_lag1": 0.06,
+          "yarra_level_lag3": 0.06,
           "barmah_level_lag3": 0.04,
           "barmah_mean_7d": -0.04,
-          "yarra_change_1d": -0.04,
-          "barmah_change_7d": 0.03,
           "yarra_level_lag8": -0.03,
-          "barmah_level_lag6": 0.02,
-          "doy_sin": 0.02,
-          "barmah_change_3d": -0.02,
-          "yarra_level_m": -0.02,
+          "barmah_change_7d": 0.02,
           "doy_cos": -0.02,
-          "yarra_level_lag7": -0.01,
-          "yarra_level_lag6": -0.01,
-          "yarra_level_lag9": -0.01,
-          "barmah_level_lag2": 0.01,
+          "yarra_level_lag6": -0.02,
+          "barmah_level_lag6": 0.01,
           "barmah_level_lag4": 0.01,
+          "yarra_level_lag9": -0.01,
+          "doy_sin": 0.01,
+          "yarra_level_m": -0.01,
           "barmah_level_lag5": 0.01,
+          "yarra_level_lag7": 0.01,
+          "yarra_change_3d": -0.0,
+          "barmah_level_lag2": 0.0,
           "barmah_std_7d": -0.0
         },
         "forecast_m": 2.677,
         "inputs": {
-          "barmah_level_m": 2.682,
-          "barmah_change_3d": -0.018,
-          "yarra_change_7d": 0.005
+          "barmah_level_m": 2.68,
+          "barmah_change_3d": -0.009,
+          "yarra_change_7d": 0.017
         },
         "captions": [
-          "Today's level itself pushes the Wed 11 Nov forecast down 0.2 cm."
-        ]
-      }
-    },
-    {
-      "date": "2026-11-12",
-      "horizon": 2,
-      "level_m": 2.666,
-      "wind_kmh": 18.4,
-      "rating": "good",
-      "reasons": [
-        "level 2.67 m in good range",
-        "wind 18 km/h"
-      ],
-      "explanation": {
-        "date": "2026-11-12",
-        "horizon": 2,
-        "current_m": 2.682,
-        "base_cm": -0.69,
-        "groups_cm": {
-          "Current level": -0.38,
-          "Barmah trend": -0.21,
-          "Upstream: Yarrawonga": -0.25,
-          "Season": -0.05
-        },
-        "features_cm": {
-          "yarra_level_lag4": -0.7,
-          "yarra_level_lag2": 0.55,
-          "barmah_change_1d": 0.39,
-          "barmah_level_lag1": -0.38,
-          "yarra_level_lag10": 0.32,
-          "barmah_level_m": -0.31,
-          "barmah_level_lag7": -0.23,
-          "yarra_level_lag5": -0.23,
-          "yarra_level_lag1": 0.2,
-          "yarra_level_lag7": -0.2,
-          "yarra_change_1d": -0.1,
-          "yarra_change_7d": 0.1,
-          "barmah_level_lag2": -0.09,
-          "yarra_level_lag6": -0.09,
-          "barmah_change_7d": 0.09,
-          "barmah_mean_7d": -0.07,
-          "barmah_level_lag4": 0.07,
-          "barmah_change_3d": -0.07,
-          "yarra_level_lag9": 0.06,
-          "yarra_level_lag3": -0.06,
-          "doy_cos": -0.04,
-          "yarra_level_m": -0.04,
-          "yarra_change_3d": -0.04,
-          "barmah_level_lag5": 0.03,
-          "yarra_level_lag8": -0.02,
-          "barmah_level_lag3": 0.02,
-          "barmah_level_lag6": -0.01,
-          "barmah_std_7d": -0.0,
-          "doy_sin": -0.0
-        },
-        "forecast_m": 2.666,
-        "inputs": {
-          "barmah_level_m": 2.682,
-          "barmah_change_3d": -0.018,
-          "yarra_change_7d": 0.005
-        },
-        "captions": [
-          "Today's level itself pushes the Thu 12 Nov forecast down 0.4 cm.",
-          "Steady flows upstream at Yarrawonga push the Thu 12 Nov forecast down 0.2 cm."
+          "Barmah's recent pattern pushes the Thu 12 Nov forecast up 0.2 cm.",
+          "Today's level itself pushes the Thu 12 Nov forecast down 0.2 cm."
         ]
       }
     },
     {
       "date": "2026-11-13",
-      "horizon": 3,
-      "level_m": 2.661,
-      "wind_kmh": 13.4,
+      "horizon": 2,
+      "level_m": 2.671,
+      "wind_kmh": 16.6,
       "rating": "good",
       "reasons": [
-        "level 2.66 m in good range",
-        "wind 13 km/h"
+        "level 2.67 m in good range",
+        "wind 17 km/h"
       ],
       "explanation": {
         "date": "2026-11-13",
-        "horizon": 3,
-        "current_m": 2.682,
-        "base_cm": -1.08,
+        "horizon": 2,
+        "current_m": 2.68,
+        "base_cm": -0.69,
         "groups_cm": {
-          "Current level": -0.64,
-          "Barmah trend": -0.11,
-          "Upstream: Yarrawonga": -0.15,
-          "Season": -0.07
+          "Current level": -0.32,
+          "Barmah trend": 0.33,
+          "Upstream: Yarrawonga": -0.13,
+          "Season": -0.06
         },
         "features_cm": {
-          "yarra_level_lag4": -0.71,
-          "barmah_level_lag1": -0.63,
-          "barmah_change_1d": 0.58,
-          "yarra_level_lag10": 0.54,
-          "yarra_level_lag1": 0.47,
-          "barmah_level_m": -0.45,
-          "barmah_level_lag7": -0.4,
-          "yarra_level_lag5": -0.36,
-          "yarra_level_lag2": 0.29,
-          "yarra_change_7d": 0.29,
-          "yarra_level_m": -0.24,
-          "barmah_mean_7d": -0.2,
-          "yarra_level_lag7": -0.17,
-          "yarra_change_1d": -0.16,
-          "yarra_level_lag6": -0.15,
-          "barmah_change_7d": 0.14,
-          "yarra_change_3d": 0.13,
-          "barmah_level_lag4": 0.12,
-          "yarra_level_lag3": -0.11,
-          "barmah_level_lag2": -0.1,
-          "barmah_level_lag3": 0.09,
-          "doy_cos": -0.09,
-          "yarra_level_lag9": 0.06,
-          "barmah_level_lag5": 0.03,
-          "barmah_std_7d": 0.03,
-          "barmah_level_lag6": 0.02,
-          "yarra_level_lag8": -0.01,
-          "doy_sin": 0.01,
-          "barmah_change_3d": 0.01
+          "barmah_change_1d": 0.82,
+          "yarra_level_lag4": -0.69,
+          "yarra_level_lag2": 0.47,
+          "barmah_level_lag1": -0.42,
+          "yarra_level_lag10": 0.3,
+          "barmah_level_m": -0.27,
+          "yarra_level_lag5": -0.22,
+          "yarra_change_3d": 0.22,
+          "barmah_level_lag7": -0.22,
+          "yarra_level_lag1": 0.17,
+          "yarra_change_1d": -0.17,
+          "yarra_level_lag7": -0.15,
+          "yarra_change_7d": 0.12,
+          "barmah_level_lag2": -0.12,
+          "barmah_change_7d": 0.09,
+          "yarra_level_lag6": -0.09,
+          "barmah_level_lag4": 0.07,
+          "barmah_change_3d": 0.06,
+          "yarra_level_lag3": -0.06,
+          "barmah_mean_7d": -0.05,
+          "yarra_level_lag8": -0.05,
+          "yarra_level_lag9": 0.04,
+          "doy_sin": -0.04,
+          "barmah_level_lag3": 0.03,
+          "yarra_level_m": -0.03,
+          "doy_cos": -0.03,
+          "barmah_std_7d": -0.02,
+          "barmah_level_lag5": 0.01,
+          "barmah_level_lag6": 0.01
         },
-        "forecast_m": 2.661,
+        "forecast_m": 2.671,
         "inputs": {
-          "barmah_level_m": 2.682,
-          "barmah_change_3d": -0.018,
-          "yarra_change_7d": 0.005
+          "barmah_level_m": 2.68,
+          "barmah_change_3d": -0.009,
+          "yarra_change_7d": 0.017
         },
         "captions": [
-          "Today's level itself pushes the Fri 13 Nov forecast down 0.6 cm.",
-          "Steady flows upstream at Yarrawonga push the Fri 13 Nov forecast down 0.1 cm."
+          "Barmah's recent pattern pushes the Fri 13 Nov forecast up 0.3 cm.",
+          "Today's level itself pushes the Fri 13 Nov forecast down 0.3 cm."
         ]
       }
     },
     {
       "date": "2026-11-14",
-      "horizon": 4,
-      "level_m": 2.658,
-      "wind_kmh": 22.7,
+      "horizon": 3,
+      "level_m": 2.673,
+      "wind_kmh": 20.4,
       "rating": "good",
       "reasons": [
-        "level 2.66 m in good range",
-        "wind 23 km/h"
+        "level 2.67 m in good range",
+        "wind 20 km/h"
       ],
       "explanation": {
         "date": "2026-11-14",
-        "horizon": 4,
-        "current_m": 2.682,
-        "base_cm": -1.48,
+        "horizon": 3,
+        "current_m": 2.68,
+        "base_cm": -1.08,
         "groups_cm": {
-          "Current level": -0.87,
-          "Barmah trend": -0.27,
-          "Upstream: Yarrawonga": 0.28,
-          "Season": -0.04
+          "Current level": -0.68,
+          "Barmah trend": 0.62,
+          "Upstream: Yarrawonga": 0.6,
+          "Season": -0.13
         },
         "features_cm": {
-          "yarra_level_lag10": 0.81,
-          "barmah_level_m": -0.77,
-          "barmah_level_lag1": -0.74,
-          "barmah_change_1d": 0.67,
-          "yarra_change_7d": 0.61,
-          "yarra_level_lag4": -0.53,
-          "yarra_level_lag5": -0.35,
-          "barmah_level_lag7": -0.28,
-          "barmah_level_lag2": -0.27,
-          "yarra_level_lag6": -0.26,
-          "barmah_change_7d": 0.23,
-          "yarra_level_lag2": 0.21,
-          "yarra_level_lag7": -0.2,
-          "yarra_level_lag9": 0.16,
-          "yarra_level_lag3": -0.14,
-          "barmah_change_3d": -0.11,
-          "barmah_mean_7d": -0.1,
-          "barmah_level_lag4": 0.09,
-          "barmah_level_lag3": 0.09,
-          "barmah_std_7d": 0.05,
-          "yarra_change_1d": -0.03,
-          "yarra_level_lag8": -0.03,
-          "barmah_level_lag5": 0.03,
-          "doy_cos": -0.03,
-          "yarra_level_m": 0.02,
-          "yarra_change_3d": 0.02,
-          "doy_sin": -0.01,
-          "barmah_level_lag6": -0.01,
-          "yarra_level_lag1": -0.01
+          "barmah_change_1d": 1.03,
+          "yarra_level_lag4": -0.74,
+          "yarra_change_3d": 0.6,
+          "yarra_change_7d": 0.59,
+          "barmah_level_lag1": -0.58,
+          "yarra_level_lag10": 0.56,
+          "barmah_level_m": -0.5,
+          "yarra_level_lag1": 0.44,
+          "barmah_level_lag7": -0.43,
+          "yarra_level_lag5": -0.41,
+          "yarra_level_lag2": 0.25,
+          "yarra_change_1d": -0.25,
+          "barmah_change_3d": 0.23,
+          "barmah_mean_7d": -0.18,
+          "yarra_level_m": -0.17,
+          "barmah_change_7d": 0.15,
+          "barmah_level_lag2": -0.15,
+          "yarra_level_lag6": -0.14,
+          "barmah_level_lag3": 0.11,
+          "barmah_level_lag4": 0.1,
+          "yarra_level_lag3": -0.1,
+          "barmah_level_lag5": 0.08,
+          "doy_cos": -0.08,
+          "yarra_level_lag7": -0.08,
+          "barmah_level_lag6": 0.07,
+          "yarra_level_lag9": 0.05,
+          "doy_sin": -0.05,
+          "barmah_std_7d": 0.02,
+          "yarra_level_lag8": 0.01
         },
-        "forecast_m": 2.658,
+        "forecast_m": 2.673,
         "inputs": {
-          "barmah_level_m": 2.682,
-          "barmah_change_3d": -0.018,
-          "yarra_change_7d": 0.005
+          "barmah_level_m": 2.68,
+          "barmah_change_3d": -0.009,
+          "yarra_change_7d": 0.017
         },
         "captions": [
-          "Today's level itself pushes the Sat 14 Nov forecast down 0.9 cm.",
-          "Steady flows upstream at Yarrawonga push the Sat 14 Nov forecast up 0.3 cm."
+          "Today's level itself pushes the Sat 14 Nov forecast down 0.7 cm.",
+          "Barmah's recent pattern pushes the Sat 14 Nov forecast up 0.6 cm."
         ]
       }
     },
     {
       "date": "2026-11-15",
-      "horizon": 5,
-      "level_m": 2.664,
-      "wind_kmh": 22.2,
-      "rating": "good",
+      "horizon": 4,
+      "level_m": 2.674,
+      "wind_kmh": 24.3,
+      "rating": "marginal",
       "reasons": [
-        "level 2.66 m in good range",
-        "wind 22 km/h"
+        "level 2.67 m in good range",
+        "breezy 24 km/h"
       ],
       "explanation": {
         "date": "2026-11-15",
-        "horizon": 5,
-        "current_m": 2.682,
-        "base_cm": -1.93,
+        "horizon": 4,
+        "current_m": 2.68,
+        "base_cm": -1.48,
         "groups_cm": {
-          "Current level": -0.93,
-          "Barmah trend": -0.19,
-          "Upstream: Yarrawonga": 1.03,
-          "Season": 0.18
+          "Current level": -0.88,
+          "Barmah trend": -0.04,
+          "Upstream: Yarrawonga": 1.87,
+          "Season": -0.06
         },
         "features_cm": {
-          "yarra_change_7d": 1.68,
-          "yarra_level_lag10": 0.89,
-          "barmah_level_m": -0.88,
-          "barmah_level_lag1": -0.86,
-          "barmah_change_1d": 0.65,
-          "yarra_level_lag4": -0.41,
-          "barmah_level_lag7": -0.36,
-          "yarra_level_lag5": -0.3,
-          "barmah_level_lag3": 0.25,
-          "barmah_level_lag2": -0.25,
-          "yarra_level_lag6": -0.23,
-          "yarra_level_lag3": -0.23,
-          "yarra_level_lag7": -0.22,
-          "doy_sin": 0.2,
-          "barmah_change_7d": 0.18,
-          "yarra_level_lag2": -0.17,
-          "yarra_level_m": -0.1,
-          "yarra_level_lag9": 0.1,
-          "barmah_level_lag4": 0.06,
-          "barmah_level_lag6": 0.06,
-          "barmah_std_7d": 0.05,
-          "barmah_mean_7d": -0.05,
-          "barmah_change_3d": 0.03,
-          "yarra_change_3d": -0.03,
-          "doy_cos": -0.02,
-          "yarra_change_1d": 0.02,
-          "yarra_level_lag8": 0.02,
-          "yarra_level_lag1": 0.02,
-          "barmah_level_lag5": 0.01
+          "yarra_change_7d": 1.43,
+          "yarra_level_lag10": 0.82,
+          "barmah_level_m": -0.76,
+          "barmah_level_lag1": -0.71,
+          "yarra_change_3d": 0.64,
+          "yarra_level_lag4": -0.53,
+          "barmah_change_1d": 0.51,
+          "barmah_level_lag7": -0.37,
+          "yarra_level_lag5": -0.36,
+          "yarra_level_lag6": -0.26,
+          "barmah_change_3d": 0.22,
+          "barmah_change_7d": 0.22,
+          "yarra_level_lag2": 0.2,
+          "yarra_level_lag7": -0.16,
+          "barmah_level_lag3": 0.15,
+          "barmah_level_lag2": -0.15,
+          "barmah_mean_7d": -0.12,
+          "yarra_level_lag9": 0.12,
+          "yarra_level_lag3": -0.11,
+          "barmah_level_lag4": 0.1,
+          "yarra_level_lag1": 0.1,
+          "yarra_level_m": 0.07,
+          "doy_sin": -0.06,
+          "yarra_change_1d": -0.06,
+          "yarra_level_lag8": -0.03,
+          "barmah_level_lag6": -0.03,
+          "barmah_std_7d": 0.02,
+          "barmah_level_lag5": -0.01,
+          "doy_cos": -0.0
         },
-        "forecast_m": 2.664,
+        "forecast_m": 2.674,
         "inputs": {
-          "barmah_level_m": 2.682,
-          "barmah_change_3d": -0.018,
-          "yarra_change_7d": 0.005
+          "barmah_level_m": 2.68,
+          "barmah_change_3d": -0.009,
+          "yarra_change_7d": 0.017
         },
         "captions": [
-          "Steady flows upstream at Yarrawonga push the Sun 15 Nov forecast up 1.0 cm.",
+          "Steady flows upstream at Yarrawonga push the Sun 15 Nov forecast up 1.9 cm.",
           "Today's level itself pushes the Sun 15 Nov forecast down 0.9 cm."
         ]
       }
     },
     {
       "date": "2026-11-16",
-      "horizon": 6,
-      "level_m": 2.664,
-      "wind_kmh": 22.8,
+      "horizon": 5,
+      "level_m": 2.679,
+      "wind_kmh": 22.2,
       "rating": "good",
       "reasons": [
-        "level 2.66 m in good range",
-        "wind 23 km/h"
+        "level 2.68 m in good range",
+        "wind 22 km/h"
       ],
       "explanation": {
         "date": "2026-11-16",
-        "horizon": 6,
-        "current_m": 2.682,
-        "base_cm": -2.32,
+        "horizon": 5,
+        "current_m": 2.68,
+        "base_cm": -1.93,
         "groups_cm": {
-          "Current level": -1.21,
-          "Barmah trend": 0.49,
-          "Upstream: Yarrawonga": 0.92,
-          "Season": 0.31
+          "Current level": -0.87,
+          "Barmah trend": 0.12,
+          "Upstream: Yarrawonga": 2.54,
+          "Season": 0.03
         },
         "features_cm": {
-          "yarra_change_7d": 1.87,
-          "barmah_change_1d": 1.03,
-          "barmah_level_m": -0.99,
-          "barmah_level_lag1": -0.98,
-          "yarra_level_lag10": 0.73,
-          "doy_sin": 0.45,
-          "yarra_level_m": -0.42,
+          "yarra_change_7d": 1.99,
+          "barmah_level_lag1": -0.97,
+          "yarra_change_3d": 0.91,
+          "barmah_change_1d": 0.84,
+          "yarra_level_lag10": 0.84,
+          "barmah_level_m": -0.82,
+          "barmah_level_lag2": -0.45,
+          "barmah_change_3d": 0.44,
           "yarra_level_lag4": -0.41,
-          "barmah_level_lag7": -0.38,
-          "barmah_level_lag3": 0.37,
-          "yarra_level_lag6": -0.29,
-          "yarra_level_lag2": -0.27,
-          "yarra_level_lag3": -0.25,
-          "yarra_level_lag5": -0.25,
-          "barmah_mean_7d": -0.22,
-          "yarra_change_1d": 0.21,
-          "barmah_change_7d": 0.17,
-          "yarra_level_lag7": -0.16,
-          "yarra_level_lag9": 0.14,
-          "doy_cos": -0.14,
-          "barmah_level_lag5": 0.11,
-          "barmah_level_lag4": 0.07,
-          "barmah_level_lag2": 0.07,
-          "barmah_change_3d": 0.04,
-          "barmah_level_lag6": -0.04,
-          "yarra_level_lag1": -0.02,
-          "yarra_change_3d": 0.02,
-          "yarra_level_lag8": 0.01,
-          "barmah_std_7d": 0.01
+          "barmah_level_lag7": -0.31,
+          "yarra_level_lag5": -0.3,
+          "barmah_level_lag3": 0.26,
+          "yarra_level_lag6": -0.22,
+          "barmah_change_7d": 0.19,
+          "yarra_level_lag3": -0.18,
+          "yarra_change_1d": 0.18,
+          "yarra_level_lag2": -0.16,
+          "yarra_level_lag9": 0.13,
+          "yarra_level_lag1": -0.11,
+          "yarra_level_lag7": -0.11,
+          "doy_sin": 0.07,
+          "barmah_level_lag6": 0.06,
+          "barmah_mean_7d": -0.05,
+          "doy_cos": -0.04,
+          "barmah_std_7d": 0.04,
+          "barmah_level_lag5": 0.03,
+          "barmah_level_lag4": -0.01,
+          "yarra_level_m": -0.01,
+          "yarra_level_lag8": 0.0
         },
-        "forecast_m": 2.664,
+        "forecast_m": 2.679,
         "inputs": {
-          "barmah_level_m": 2.682,
-          "barmah_change_3d": -0.018,
-          "yarra_change_7d": 0.005
+          "barmah_level_m": 2.68,
+          "barmah_change_3d": -0.009,
+          "yarra_change_7d": 0.017
         },
         "captions": [
-          "Today's level itself pushes the Mon 16 Nov forecast down 1.2 cm.",
-          "Steady flows upstream at Yarrawonga push the Mon 16 Nov forecast up 0.9 cm."
+          "Steady flows upstream at Yarrawonga push the Mon 16 Nov forecast up 2.5 cm.",
+          "Today's level itself pushes the Mon 16 Nov forecast down 0.9 cm."
         ]
       }
     },
     {
       "date": "2026-11-17",
-      "horizon": 7,
-      "level_m": 2.652,
-      "wind_kmh": 20.0,
+      "horizon": 6,
+      "level_m": 2.677,
+      "wind_kmh": 17.4,
       "rating": "good",
       "reasons": [
-        "level 2.65 m in good range",
-        "wind 20 km/h"
+        "level 2.68 m in good range",
+        "wind 17 km/h"
       ],
       "explanation": {
         "date": "2026-11-17",
-        "horizon": 7,
-        "current_m": 2.682,
-        "base_cm": -2.7,
+        "horizon": 6,
+        "current_m": 2.68,
+        "base_cm": -2.32,
         "groups_cm": {
-          "Current level": -1.87,
-          "Barmah trend": -0.09,
-          "Upstream: Yarrawonga": 1.03,
-          "Season": 0.63
+          "Current level": -1.15,
+          "Barmah trend": 0.68,
+          "Upstream: Yarrawonga": 2.34,
+          "Season": 0.2
         },
         "features_cm": {
-          "yarra_change_7d": 2.3,
-          "barmah_level_m": -1.81,
-          "barmah_level_lag1": -1.11,
-          "barmah_change_1d": 1.07,
-          "yarra_level_lag10": 0.82,
-          "doy_sin": 0.7,
-          "yarra_level_lag5": -0.51,
-          "yarra_level_lag4": -0.5,
-          "yarra_level_lag2": -0.44,
-          "yarra_change_1d": 0.38,
-          "yarra_level_lag6": -0.33,
-          "barmah_level_lag3": 0.31,
-          "barmah_level_lag7": -0.31,
-          "yarra_level_m": -0.3,
-          "yarra_level_lag3": -0.22,
-          "yarra_change_3d": -0.18,
-          "barmah_level_lag6": -0.16,
-          "barmah_level_lag4": 0.16,
-          "yarra_level_lag9": 0.15,
-          "barmah_level_lag5": -0.13,
-          "barmah_change_7d": 0.1,
-          "yarra_level_lag1": -0.09,
-          "yarra_level_lag7": -0.09,
-          "barmah_level_lag2": -0.08,
-          "doy_cos": -0.07,
-          "barmah_mean_7d": -0.06,
-          "barmah_std_7d": 0.05,
-          "yarra_level_lag8": 0.04,
-          "barmah_change_3d": 0.01
+          "yarra_change_7d": 2.21,
+          "barmah_change_1d": 1.18,
+          "barmah_level_lag1": -1.16,
+          "barmah_level_m": -0.95,
+          "yarra_level_lag10": 0.79,
+          "yarra_change_3d": 0.71,
+          "yarra_change_1d": 0.57,
+          "barmah_change_3d": 0.41,
+          "yarra_level_lag4": -0.37,
+          "yarra_level_m": -0.36,
+          "barmah_level_lag3": 0.36,
+          "yarra_level_lag6": -0.34,
+          "doy_sin": 0.33,
+          "barmah_level_lag7": -0.33,
+          "yarra_level_lag5": -0.28,
+          "yarra_level_lag2": -0.24,
+          "yarra_level_lag3": -0.23,
+          "barmah_mean_7d": -0.21,
+          "barmah_change_7d": 0.17,
+          "yarra_level_lag7": -0.13,
+          "doy_cos": -0.13,
+          "yarra_level_lag9": 0.13,
+          "barmah_level_lag5": 0.13,
+          "yarra_level_lag1": -0.11,
+          "barmah_level_lag2": -0.1,
+          "barmah_level_lag4": 0.04,
+          "barmah_level_lag6": -0.02,
+          "barmah_std_7d": 0.01,
+          "yarra_level_lag8": -0.01
         },
-        "forecast_m": 2.652,
+        "forecast_m": 2.677,
         "inputs": {
-          "barmah_level_m": 2.682,
-          "barmah_change_3d": -0.018,
-          "yarra_change_7d": 0.005
+          "barmah_level_m": 2.68,
+          "barmah_change_3d": -0.009,
+          "yarra_change_7d": 0.017
         },
         "captions": [
-          "Today's level itself pushes the Tue 17 Nov forecast down 1.9 cm.",
-          "Steady flows upstream at Yarrawonga push the Tue 17 Nov forecast up 1.0 cm."
+          "Steady flows upstream at Yarrawonga push the Tue 17 Nov forecast up 2.3 cm.",
+          "Today's level itself pushes the Tue 17 Nov forecast down 1.1 cm."
+        ]
+      }
+    },
+    {
+      "date": "2026-11-18",
+      "horizon": 7,
+      "level_m": 2.66,
+      "wind_kmh": 16.1,
+      "rating": "good",
+      "reasons": [
+        "level 2.66 m in good range",
+        "wind 16 km/h"
+      ],
+      "explanation": {
+        "date": "2026-11-18",
+        "horizon": 7,
+        "current_m": 2.68,
+        "base_cm": -2.7,
+        "groups_cm": {
+          "Current level": -1.9,
+          "Barmah trend": 0.05,
+          "Upstream: Yarrawonga": 2.4,
+          "Season": 0.18
+        },
+        "features_cm": {
+          "yarra_change_7d": 2.17,
+          "barmah_level_m": -1.84,
+          "barmah_level_lag1": -1.44,
+          "barmah_change_1d": 1.21,
+          "yarra_change_1d": 1.17,
+          "yarra_level_lag10": 0.79,
+          "yarra_change_3d": 0.71,
+          "yarra_level_lag4": -0.47,
+          "yarra_level_lag5": -0.46,
+          "barmah_level_lag7": -0.43,
+          "yarra_level_m": -0.39,
+          "barmah_level_lag3": 0.36,
+          "yarra_level_lag2": -0.34,
+          "barmah_change_3d": 0.33,
+          "yarra_level_lag6": -0.32,
+          "barmah_level_lag2": -0.32,
+          "yarra_level_lag3": -0.3,
+          "yarra_level_lag1": -0.3,
+          "doy_sin": 0.25,
+          "barmah_level_lag4": 0.22,
+          "yarra_level_lag9": 0.16,
+          "barmah_change_7d": 0.13,
+          "doy_cos": -0.07,
+          "barmah_level_lag6": -0.07,
+          "barmah_std_7d": 0.07,
+          "yarra_level_lag7": -0.07,
+          "barmah_mean_7d": -0.06,
+          "yarra_level_lag8": 0.05,
+          "barmah_level_lag5": -0.02
+        },
+        "forecast_m": 2.66,
+        "inputs": {
+          "barmah_level_m": 2.68,
+          "barmah_change_3d": -0.009,
+          "yarra_change_7d": 0.017
+        },
+        "captions": [
+          "Steady flows upstream at Yarrawonga push the Wed 18 Nov forecast up 2.4 cm.",
+          "Today's level itself pushes the Wed 18 Nov forecast down 1.9 cm."
         ]
       }
     }
   ],
   "history": [
-    {
-      "date": "2026-10-12",
-      "level_m": 2.763
-    },
     {
       "date": "2026-10-13",
       "level_m": 2.75
@@ -575,6 +572,10 @@
     {
       "date": "2026-11-10",
       "level_m": 2.682
+    },
+    {
+      "date": "2026-11-11",
+      "level_m": 2.68
     }
   ],
   "second_opinion": {
@@ -586,13 +587,55 @@
     "calibrated": true,
     "days": [
       {
-        "date": "2026-11-11",
+        "date": "2026-11-12",
         "horizon": 1,
-        "level_m": 2.681,
-        "q10_m": 2.673,
-        "q90_m": 2.69,
+        "level_m": 2.68,
+        "q10_m": 2.672,
+        "q90_m": 2.689,
         "p_good_level": 1.0,
-        "wind_kmh": 23.8,
+        "wind_kmh": 17.2,
+        "rating": "good",
+        "reasons": [
+          "level 2.68 m in good range",
+          "wind 17 km/h"
+        ]
+      },
+      {
+        "date": "2026-11-13",
+        "horizon": 2,
+        "level_m": 2.68,
+        "q10_m": 2.667,
+        "q90_m": 2.694,
+        "p_good_level": 1.0,
+        "wind_kmh": 16.6,
+        "rating": "good",
+        "reasons": [
+          "level 2.68 m in good range",
+          "wind 17 km/h"
+        ]
+      },
+      {
+        "date": "2026-11-14",
+        "horizon": 3,
+        "level_m": 2.681,
+        "q10_m": 2.664,
+        "q90_m": 2.701,
+        "p_good_level": 1.0,
+        "wind_kmh": 20.4,
+        "rating": "good",
+        "reasons": [
+          "level 2.68 m in good range",
+          "wind 20 km/h"
+        ]
+      },
+      {
+        "date": "2026-11-15",
+        "horizon": 4,
+        "level_m": 2.684,
+        "q10_m": 2.662,
+        "q90_m": 2.71,
+        "p_good_level": 1.0,
+        "wind_kmh": 24.3,
         "rating": "marginal",
         "reasons": [
           "level 2.68 m in good range",
@@ -600,87 +643,45 @@
         ]
       },
       {
-        "date": "2026-11-12",
-        "horizon": 2,
-        "level_m": 2.679,
-        "q10_m": 2.666,
-        "q90_m": 2.693,
-        "p_good_level": 1.0,
-        "wind_kmh": 18.4,
-        "rating": "good",
-        "reasons": [
-          "level 2.68 m in good range",
-          "wind 18 km/h"
-        ]
-      },
-      {
-        "date": "2026-11-13",
-        "horizon": 3,
-        "level_m": 2.679,
-        "q10_m": 2.66,
-        "q90_m": 2.698,
-        "p_good_level": 1.0,
-        "wind_kmh": 13.4,
-        "rating": "good",
-        "reasons": [
-          "level 2.68 m in good range",
-          "wind 13 km/h"
-        ]
-      },
-      {
-        "date": "2026-11-14",
-        "horizon": 4,
-        "level_m": 2.679,
-        "q10_m": 2.656,
-        "q90_m": 2.704,
-        "p_good_level": 1.0,
-        "wind_kmh": 22.7,
-        "rating": "good",
-        "reasons": [
-          "level 2.68 m in good range",
-          "wind 23 km/h"
-        ]
-      },
-      {
-        "date": "2026-11-15",
+        "date": "2026-11-16",
         "horizon": 5,
-        "level_m": 2.679,
-        "q10_m": 2.652,
-        "q90_m": 2.709,
+        "level_m": 2.687,
+        "q10_m": 2.661,
+        "q90_m": 2.717,
         "p_good_level": 1.0,
         "wind_kmh": 22.2,
         "rating": "good",
         "reasons": [
-          "level 2.68 m in good range",
+          "level 2.69 m in good range",
           "wind 22 km/h"
         ]
       },
       {
-        "date": "2026-11-16",
+        "date": "2026-11-17",
         "horizon": 6,
-        "level_m": 2.68,
-        "q10_m": 2.647,
-        "q90_m": 2.714,
+        "level_m": 2.689,
+        "q10_m": 2.659,
+        "q90_m": 2.725,
         "p_good_level": 1.0,
-        "wind_kmh": 22.8,
+        "wind_kmh": 17.4,
         "rating": "good",
         "reasons": [
-          "level 2.68 m in good range",
-          "wind 23 km/h"
+          "level 2.69 m in good range",
+          "wind 17 km/h"
         ]
       },
       {
-        "date": "2026-11-17",
+        "date": "2026-11-18",
         "horizon": 7,
-        "level_m": 2.681,
-        "q10_m": 2.642,
-        "q90_m": 2.721,
+        "level_m": 2.691,
+        "q10_m": 2.656,
+        "q90_m": 2.735,
         "p_good_level": 1.0,
-        "wind_kmh": 20.0,
+        "wind_kmh": 16.1,
         "rating": "good",
         "reasons": [
-          "level 2.68 m in good range",
-          "wind 20 km/h"
+          "level 2.69 m in good range",
+          "wind 16 km/h"
         ]
       }
     ]
